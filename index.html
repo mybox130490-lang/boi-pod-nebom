@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>Бой под небом</title><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head>
+<body><title>Бой под небом</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Forum&family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Раскладка: арена — два бойца по краям, посередине ход боя и управление; ниже небо этой минуты, бафы, журнал, итог.
+   Тот же мир, что «Герой по рождению»: индиго неба, шафран, киноварь, туласи. */
+:root {
+  --ink: #0b0e21; --ink-2: #131935; --ink-3: #1c2347;
+  --parchment: #efe8d6; --dim: #a7a5c2; --saffron: #eaa53c; --sindoor: #e5583c; --tulsi: #63c283;
+  --line: rgba(239, 232, 214, .12); --line-2: rgba(239, 232, 214, .22);
+  --display: 'Forum', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --body: 'Onest', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--ink); }
+body { margin: 0; background: var(--ink); color: var(--parchment); font: 400 16px/1.6 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ink); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; margin: 0; text-wrap: balance; }
+button, select { font: inherit; }
+:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
+.eyebrow { font: 500 12px/1.3 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--saffron); }
+.muted { color: var(--dim); }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--ink) 90%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; gap: 14px; align-items: baseline; padding-block: 10px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-size: 22px; } .brand b { color: var(--saffron); font-weight: 400; }
+.when { font: 400 13px var(--mono); color: var(--dim); margin-left: auto; }
+
+.arena { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.arena .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 1fr); gap: 22px; padding-block: 36px 40px; align-items: start; }
+.fighter { padding: 3px; border-radius: 20px; background: linear-gradient(140deg, var(--c1), var(--c2) 60%, var(--aura)); }
+.fighter > div { border-radius: 17px; padding: 16px 18px; background: radial-gradient(110% 70% at 80% -10%, color-mix(in srgb, var(--aura) 35%, transparent), transparent 60%), #12142a; display: grid; gap: 10px; }
+.fighter .nm { font: 500 11.5px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); }
+.fighter h2 { font-size: 32px; line-height: 1.05; }
+.fighter .sub { font-size: 14px; color: rgba(239, 232, 214, .85); } .fighter .sub b { color: var(--c1); font-weight: 600; }
+.hpbar { height: 14px; border-radius: 8px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.hpbar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #c0392b, #ff8585); transition: width .45s ease; }
+.hpnum { display: flex; justify-content: space-between; font: 500 14px var(--mono); }
+.hpnum b { font-size: 22px; color: #ff8a8a; font-weight: 500; }
+.kv { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.kv div { background: rgba(255, 255, 255, .05); border-radius: 10px; padding: 6px 8px; }
+.kv span { display: block; font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
+.kv b { font: 500 16px var(--mono); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font: 500 11.5px var(--mono); border-radius: 999px; padding: 3px 9px; border: 1px solid var(--line-2); }
+.tag.good { color: var(--tulsi); border-color: rgba(99, 194, 131, .5); } .tag.bad { color: #ff9f8a; border-color: rgba(229, 88, 60, .55); }
+.center { display: grid; gap: 14px; align-content: start; }
+.vs { text-align: center; font-family: var(--display); font-size: 52px; line-height: 1; color: var(--saffron); }
+.vs small { display: block; font: 500 12px var(--mono); letter-spacing: .14em; color: var(--dim); text-transform: uppercase; margin-top: 6px; }
+.now { background: var(--ink-2); border: 1px solid var(--line-2); border-radius: 16px; padding: 14px 16px; min-height: 150px; }
+.now .r { font: 500 12px var(--mono); color: var(--dim); letter-spacing: .1em; text-transform: uppercase; }
+.now h3 { font-size: 24px; margin: 6px 0 4px; }
+.now h3 i { font-style: normal; }
+.now p { margin: 0; font-size: 15px; }
+.now.ult { border-color: var(--saffron); box-shadow: 0 0 40px -12px var(--saffron); }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.btn { border: 1px solid var(--line-2); background: transparent; color: var(--parchment); border-radius: 999px; padding: 7px 14px; cursor: pointer; font-size: 14px; }
+.btn.main { background: var(--saffron); border-color: var(--saffron); color: var(--ink); font-weight: 600; }
+.btn:disabled { opacity: .45; cursor: default; }
+.controls select { background: var(--ink-2); color: var(--parchment); border: 1px solid var(--line-2); border-radius: 999px; padding: 7px 10px; }
+.progress { height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.progress i { display: block; height: 100%; width: 0; background: var(--saffron); transition: width .3s; }
+
+.sec { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 32px; padding-block: 44px; border-bottom: 1px solid var(--line); }
+.sec > header h2 { font-size: 34px; line-height: 1.08; margin-top: 8px; }
+.sec > header p { color: var(--dim); font-size: 14px; margin: 10px 0 0; }
+.sec > div { min-width: 0; }
+.skyrow { display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr); gap: 24px; align-items: start; }
+.wheel svg { width: 100%; height: auto; display: block; }
+.planets { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.planets li { display: grid; grid-template-columns: 26px 92px minmax(0, 1fr) auto; gap: 8px; align-items: baseline; padding: 6px 10px; border-radius: 10px; background: var(--ink-2); font-size: 14.5px; }
+.planets .gl { font-size: 18px; text-align: center; }
+.planets .pos { font: 400 13px var(--mono); color: var(--dim); }
+.skysum { margin: 14px 0 0; font-size: 16px; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.col { background: var(--ink-2); border: 1px solid var(--line); border-radius: 16px; padding: 14px 16px; display: grid; gap: 12px; align-content: start; min-width: 0; }
+.col h3 { font-size: 26px; }
+.tara { border-radius: 12px; padding: 10px 12px; border: 1px solid var(--line-2); }
+.tara.good { border-color: rgba(99, 194, 131, .5); } .tara.bad { border-color: rgba(229, 88, 60, .55); }
+.tara b { font-family: var(--display); font-size: 20px; font-weight: 400; }
+table.st { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.st td { padding: 5px 6px 5px 0; border-top: 1px solid var(--line); }
+table.st td.n { font: 500 14px var(--mono); text-align: right; white-space: nowrap; }
+.up { color: var(--tulsi); } .down { color: #ff9f8a; }
+.mods { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.mods li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.pct { font: 500 12.5px var(--mono); text-align: right; }
+.mods .src { font: 500 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); }
+.log { max-height: 640px; overflow: auto; border: 1px solid var(--line); border-radius: 16px; background: var(--ink-2); }
+.log ol { list-style: none; margin: 0; padding: 6px 0; }
+.log li { display: grid; grid-template-columns: 56px 10px minmax(0, 1fr) auto; gap: 10px; align-items: baseline; padding: 7px 14px; font-size: 14px; border-left: 3px solid transparent; }
+.log li .rd { font: 400 12px var(--mono); color: var(--dim); }
+.log li .dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.log li .hp { font: 400 12px var(--mono); color: var(--dim); white-space: nowrap; }
+.log li.k-ult { background: rgba(234, 165, 60, .08); } .log li.k-end { background: rgba(99, 194, 131, .1); font-weight: 600; }
+.log li.on { border-left-color: var(--saffron); background: rgba(234, 165, 60, .14); }
+.result { font-family: var(--display); font-size: 40px; line-height: 1.1; margin: 0 0 8px; }
+table.tally { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 16px 0; }
+table.tally th { text-align: right; font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); padding: 6px 0 6px 10px; }
+table.tally th:first-child { text-align: left; }
+table.tally td { padding: 7px 0 7px 10px; border-top: 1px solid var(--line); text-align: right; font: 500 14px var(--mono); }
+table.tally td:first-child { text-align: left; font: 400 14.5px var(--body); }
+.why { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+.why li { border-left: 3px solid var(--saffron); padding: 2px 0 2px 12px; font-size: 15.5px; }
+footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
+@media (max-width: 980px) {
+  .arena .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .center { grid-column: 1 / -1; grid-row: 2; }
+  .sec { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-block: 34px; }
+  .skyrow { grid-template-columns: minmax(0, 1fr); }
+  .wheel { max-width: 360px; }
+}
+@media (max-width: 640px) {
+  .arena .wrap { grid-template-columns: minmax(0, 1fr); }
+  .center { grid-row: auto; }
+  .two { grid-template-columns: minmax(0, 1fr); }
+  .kv { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .log li { grid-template-columns: 44px 10px minmax(0, 1fr); } .log li .hp { grid-column: 3; }
+  .planets li { grid-template-columns: 26px minmax(0, 1fr) auto; } .planets .pos { grid-column: 2 / -1; }
+  .when { margin-left: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .hpbar i, .progress i { transition: none; } }
+</style>
+
+<header class="top"><div class="wrap"><div class="brand">Бой <b>под небом</b></div><div class="when" id="when"></div></div></header>
+
+<section class="arena">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div id="f0"></div>
+    <div class="center">
+      <div class="vs">против<small id="vsnote"></small></div>
+      <div class="now" id="now" aria-live="polite"></div>
+      <div class="progress"><i id="prog"></i></div>
+      <div class="controls">
+        <button class="btn main" type="button" id="play">▶ Смотреть бой</button>
+        <button class="btn" type="button" id="step">Шаг</button>
+        <button class="btn" type="button" id="reset">Сначала</button>
+        <button class="btn" type="button" id="end">К итогу</button>
+        <label class="muted" for="speed" style="display:none">Скорость</label>
+        <select id="speed" aria-label="Скорость"><option value="1100">1×</option><option value="550" selected>2×</option><option value="250">4×</option></select>
+      </div>
+    </div>
+    <div id="f1"></div>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="sec">
+    <header><div class="eyebrow">Небо</div><h2>На эту минуту</h2><p>Настоящие положения планет — в зодиаке программы. Общее для обоих: планета в экзальтации +10 %, в падении −10 %, сожжённая Солнцем −15 %.</p></header>
+    <div class="skyrow"><div class="wheel" id="wheel"></div><div><ul class="planets" id="planets"></ul><p class="skysum" id="skysum"></p></div></div>
+  </div>
+  <div class="sec">
+    <header><div class="eyebrow">Бафы и дебафы</div><h2>Что сегодня у каждого</h2>
+      <p>Гочара — транзит в доме от натальной Луны: благой дом +10 %, остальные −5 %. Даши: махадаша ±20 %, антардаша ±10 %. Тара Луны — к шансу крита.</p></header>
+    <div class="two" id="mods"></div>
+  </div>
+  <div class="sec">
+    <header><div class="eyebrow">Журнал</div><h2>Ход боя</h2><p>Раунд — пять секунд. Здоровье после хода — справа.</p></header>
+    <div class="log" id="log"><ol id="logl"></ol></div>
+  </div>
+  <div class="sec">
+    <header><div class="eyebrow">Итог</div><h2>Кто и почему</h2></header>
+    <div id="result"></div>
+  </div>
+</main>
+
+<footer class="foot"><div class="wrap" id="foot"></div></footer>
+
+<script>
+let D, B, S, ev = [];
+const GLYPH = { su: '☉', mo: '☽', ma: '♂', me: '☿', ju: '♃', ve: '♀', sa: '♄', ra: '☊', ke: '☋' };
+const SIGNS = ['Ов', 'Тл', 'Бл', 'Рк', 'Лв', 'Дв', 'Вс', 'Ск', 'Ст', 'Кз', 'Вд', 'Рб'];
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const deg = (d) => `${Math.floor(d)}°${String(Math.floor((d % 1) * 60)).padStart(2, '0')}′`;
+/** Цвет стороны — свой у каждого бойца, даже если стихия одна. */
+const col = (i) => (i ? '#8fc8ff' : '#eaa53c');
+const sgn = (n) => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n);
+
+function fighterHtml(i) {
+  const f = S[i], b = B.sides[i];
+  const taraCls = f.tara.good === true ? 'good' : f.tara.good === false ? 'bad' : '';
+  return `<article class="fighter" style="--c1:${f.colors[0]};--c2:${f.colors[1]};--aura:${f.aura}"><div>
+    <span class="nm" style="color:${col(i)}">● ${esc(f.name)}</span><h2>${esc(f.className)}</h2>
+    <span class="sub">${esc(f.path)} · <b>${esc(f.element)}</b> · ${esc(f.weapon)}</span>
+    <div class="hpnum"><span>Здоровье</span><span><b id="hp${i}">${b.maxHp}</b> / ${b.maxHp}</span></div>
+    <div class="hpbar"><i id="bar${i}"></i></div>
+    <div class="kv"><div><span>Удар</span><b>${b.dmg}</b></div><div><span>Броня</span><b>${b.armor}%</b></div>
+      <div><span>Крит</span><b>${b.crit}%</b></div><div><span>Ульта</span><b>${b.ultIn} р.</b></div></div>
+    <div class="tags"><span class="tag ${taraCls}">тара ${esc(f.tara.name)}</span>${f.sadeSati ? '<span class="tag bad">Саде-Сати</span>' : ''}
+      <span class="tag">ульта «${esc(f.ult.name)}»</span></div>
+  </div></article>`;
+}
+
+function wheel() {
+  const R = 150, C = 160;
+  const pt = (lon, r) => { const a = Math.PI - (lon * Math.PI) / 180; return [C + r * Math.cos(a), C - r * Math.sin(a)]; };
+  let svg = `<circle cx="${C}" cy="${C}" r="${R}" fill="#131935" stroke="rgba(239,232,214,.22)"/><circle cx="${C}" cy="${C}" r="${R - 34}" fill="none" stroke="rgba(239,232,214,.12)"/>`;
+  for (let i = 0; i < 12; i++) {
+    const [x1, y1] = pt(i * 30, R), [x2, y2] = pt(i * 30, R - 34);
+    svg += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="rgba(239,232,214,.22)"/>`;
+    const [tx, ty] = pt(i * 30 + 15, R - 17);
+    svg += `<text x="${tx.toFixed(1)}" y="${(ty + 4).toFixed(1)}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="#a7a5c2">${SIGNS[i]}</text>`;
+  }
+  const sorted = [...D.sky].sort((a, b) => a.lon - b.lon);
+  let prev = -99, lane = 0;
+  for (const p of sorted) {
+    lane = p.lon - prev < 9 ? lane + 1 : 0; prev = p.lon;
+    const r = R - 52 - lane * 20;
+    const [x, y] = pt(p.lon, r), [mx, my] = pt(p.lon, R - 34);
+    const fill = p.state === 'debilitated' ? '#e5583c' : p.state === 'exalted' ? '#63c283' : '#efe8d6';
+    svg += `<line x1="${mx.toFixed(1)}" y1="${my.toFixed(1)}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(239,232,214,.18)"/>` +
+      `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="11" fill="#0b0e21" stroke="${fill}"/>` +
+      `<text x="${x.toFixed(1)}" y="${(y + 5).toFixed(1)}" text-anchor="middle" font-size="14" fill="${fill}">${GLYPH[p.graha]}</text>`;
+  }
+  svg += `<text x="${C}" y="${C + 4}" text-anchor="middle" font-family="Forum, Georgia, serif" font-size="15" fill="#eaa53c">небо</text>`;
+  return `<svg viewBox="0 0 320 320" role="img" aria-label="Положения планет в знаках зодиака на эту минуту">${svg}</svg>`;
+}
+
+function skyList() {
+  document.getElementById('planets').innerHTML = D.sky.map((p) => {
+    const flags = [p.state === 'exalted' ? '<span class="tag good">экзальтация</span>' : '', p.state === 'debilitated' ? '<span class="tag bad">падение</span>' : '',
+      p.retro ? '<span class="tag">℞ ретро</span>' : '', p.combust ? '<span class="tag bad">сожжён</span>' : ''].join(' ');
+    return `<li><span class="gl">${GLYPH[p.graha]}</span><b>${esc(p.name)}</b><span class="pos">${esc(p.sign)} ${deg(p.degree)} · ${esc(p.nak)}</span><span>${flags}</span></li>`;
+  }).join('');
+  const fall = D.sky.filter((p) => p.state === 'debilitated').map((p) => p.name);
+  const high = D.sky.filter((p) => p.state === 'exalted').map((p) => p.name);
+  const retro = D.sky.filter((p) => p.retro).map((p) => p.name);
+  document.getElementById('skysum').textContent = [
+    fall.length ? `В падении: ${fall.join(', ')} — тяжёлое небо, ${fall.length > 2 ? 'обоим заметный общий дебафф' : 'общий дебафф'}.` : 'В падении сегодня никого.',
+    high.length ? `В экзальтации: ${high.join(', ')}.` : '',
+    retro.length ? `Ретроградны: ${retro.join(', ')}.` : '',
+  ].filter(Boolean).join(' ');
+}
+
+function modsHtml(i) {
+  const f = S[i], b = B.sides[i];
+  const taraCls = f.tara.good === true ? 'good' : f.tara.good === false ? 'bad' : '';
+  const rows = f.stats.map((s) => {
+    const now = b.stats[s.graha], d = Math.round((now / s.value - 1) * 100);
+    return `<tr><td>${esc(s.name)}</td><td class="n">${s.value}</td><td class="n ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${now}</td><td class="n ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d ? sgn(d) + '%' : '—'}</td></tr>`;
+  }).join('');
+  const order = ['даша', 'гочара', 'Саде-Сати', 'небо'];
+  const mods = [...f.mods].sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source)).map((m) =>
+    `<li><span class="pct ${m.pct > 0 ? 'up' : 'down'}">${sgn(m.pct)}%</span><span><b>${esc(m.target)}</b> — ${esc(m.why)} <span class="src">${esc(m.source)}</span></span></li>`).join('');
+  const per = (p, big) => p ? `${big ? 'Махадаша' : 'антардаша'} ${esc(p.lordName)} — ${p.kind === 'power' ? 'окно силы' : p.kind === 'trial' ? 'испытание' : 'ровно'}` : '';
+  return `<div class="col" style="--c1:${f.colors[0]}"><div><span class="eyebrow" style="color:${col(i)}">● ${esc(f.name)}</span><h3>${esc(f.className)}</h3>
+      <p class="muted" style="margin:4px 0 0">${per(f.md, true)}; ${per(f.ad, false)}</p></div>
+    <div class="tara ${taraCls}"><span class="eyebrow" style="color:var(--dim)">Тара Луны сегодня · ${esc(f.tara.nakshatra)}</span><br>
+      <b>${esc(f.tara.name)}</b> — ${esc(f.tara.about)}; шанс крита ${f.tara.crit >= 0 ? '+' : '−'}${Math.abs(f.tara.crit)} → ${b.crit} %</div>
+    <table class="st"><tbody><tr><td class="muted">Характеристика</td><td class="n muted">база</td><td class="n muted">сегодня</td><td></td></tr>${rows}</tbody></table>
+    <ul class="mods">${mods}</ul></div>`;
+}
+
+function logHtml() {
+  let html = '', last = -1;
+  B.events.forEach((e, k) => {
+    html += `<li id="ev${k}" class="k-${e.kind}"><span class="rd">${e.round !== last ? 'Р' + e.round : ''}</span>` +
+      `<span class="dot" style="background:${col(e.actor)}"></span>` +
+      `<span><b style="color:${col(e.actor)}">${esc(S[e.actor].name)}</b> · ${e.kind === 'attack' || e.kind === 'heavy' ? '' : esc(e.title) + ' — '}${esc(e.text)}</span><span class="hp">${e.hp[0]} · ${e.hp[1]}</span></li>`;
+    last = e.round;
+  });
+  document.getElementById('logl').innerHTML = html;
+}
+
+function resultHtml() {
+  const w = B.winner, l = 1 - w, T = B.tally;
+  const lastHp = B.events[B.events.length - 1].hp;
+  const pct = (i) => Math.round(lastHp[i] / B.sides[i].maxHp * 100);
+  const head = B.byTimeout ? `${esc(S[w].name)} побеждает по очкам: ${pct(w)} % здоровья против ${pct(l)} %`
+    : `${esc(S[w].name)} побеждает: ${esc(S[l].name)} без сил на ${B.rounds}-м раунде`;
+  const row = (name, key) => `<tr><td>${name}</td><td>${T[0][key]}</td><td>${T[1][key]}</td></tr>`;
+  const net = (i) => {
+    const sum = {};
+    for (const m of S[i].mods) sum[m.target] = (sum[m.target] || 0) + m.pct;
+    const list = Object.entries(sum).sort((a, b) => b[1] - a[1]);
+    return { best: list[0], worst: list[list.length - 1] };
+  };
+  const why = [];
+  why.push(`Нанесли урона: ${S[0].name} — ${T[0].dealt}, ${S[1].name} — ${T[1].dealt}. Вылечили: ${T[0].healed} и ${T[1].healed}.`);
+  if (B.byTimeout && T[l].healed > T[l].dealt) why.push(`${S[l].name} ${S[l].female ? 'продержалась' : 'продержался'} на лечении — ${T[l].healed} здоровья, но этого не хватило, чтобы догнать по очкам.`);
+  for (const i of [0, 1]) {
+    const n = net(i);
+    why.push(`${S[i].name}: тара ${S[i].tara.name} (${S[i].tara.about}) — крит ${B.sides[i].crit} %, критов за бой — ${T[i].crits}. Сильнее всего сегодня помогло: ${n.best[0]} ${sgn(n.best[1])} %, мешало: ${n.worst[0]} ${sgn(n.worst[1])} %.`);
+  }
+  const misses = (i) => T[i].misses;
+  if (misses(0) + misses(1)) why.push(`Промахов по сопернику: ${S[0].name} — ${misses(0)}, ${S[1].name} — ${misses(1)}. Невидимость, финты и ослепление решали не меньше силы.`);
+  const fall = D.sky.filter((p) => p.state === 'debilitated').length;
+  if (fall) why.push(`Небо одно на двоих: ${fall} планеты в падении сегодня ослабили обоих одинаково.`);
+  if (D.kuta != null) why.push(`Совместимость пары по ашта-куте — ${D.kuta} из 36: бой дружеский${D.kuta >= 18 ? ', союз прочный' : ''}.`);
+  return `<p class="result">${head}</p>
+    <div style="overflow-x:auto"><table class="tally"><thead><tr><th></th><th>${esc(S[0].name)}</th><th>${esc(S[1].name)}</th></tr></thead><tbody>
+      ${row('Нанесено урона', 'dealt')}${row('Вылечено', 'healed')}${row('Критов', 'crits')}${row('Ульт', 'ults')}${row('Умений', 'skills')}${row('Промахов по сопернику', 'misses')}${row('Срывов (планета в падении)', 'slips')}
+    </tbody></table></div>
+    <ul class="why">${why.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>`;
+}
+
+// повтор боя
+let k = -1, timer = null;
+function show(idx) {
+  k = idx;
+  const hp = idx < 0 ? [B.sides[0].maxHp, B.sides[1].maxHp] : ev[idx].hp;
+  for (const i of [0, 1]) {
+    document.getElementById('hp' + i).textContent = hp[i];
+    document.getElementById('bar' + i).style.width = Math.max(0, hp[i] / B.sides[i].maxHp * 100) + '%';
+  }
+  const now = document.getElementById('now');
+  document.querySelectorAll('#logl li.on').forEach((x) => x.classList.remove('on'));
+  if (idx < 0) {
+    const first = B.sides[0].stats.me >= B.sides[1].stats.me ? 0 : 1;
+    now.className = 'now';
+    now.innerHTML = `<span class="r">Раунд 0 из ${B.rounds}</span><h3>Бойцы на арене</h3><p>Первым ходит ${esc(S[first].name)} — Ловкость сегодня выше (${B.sides[first].stats.me}). Нажмите «Смотреть бой».</p>`;
+  } else {
+    const e = ev[idx];
+    now.className = 'now' + (e.kind === 'ult' || e.kind === 'end' ? ' ult' : '');
+    now.innerHTML = `<span class="r">Раунд ${e.round} из ${B.rounds}</span><h3><i style="color:${col(e.actor)}">${esc(S[e.actor].name)}</i> · ${esc(e.kind === 'heavy' ? 'Сильный удар' : e.title)}</h3><p>${esc(e.text)}</p>`;
+    const li = document.getElementById('ev' + idx);
+    li.classList.add('on');
+    const box = document.getElementById('log');
+    box.scrollTop = Math.max(0, li.offsetTop - box.clientHeight / 2);
+  }
+  document.getElementById('prog').style.width = ((idx + 1) / ev.length * 100) + '%';
+  document.getElementById('step').disabled = idx >= ev.length - 1;
+}
+function stop() { clearInterval(timer); timer = null; document.getElementById('play').textContent = k >= ev.length - 1 ? '▶ Ещё раз' : '▶ Смотреть бой'; }
+function play() {
+  if (timer) return stop();
+  if (k >= ev.length - 1) show(-1);
+  document.getElementById('play').textContent = '⏸ Пауза';
+  timer = setInterval(() => { if (k >= ev.length - 1) return stop(); show(k + 1); }, Number(document.getElementById('speed').value));
+}
+
+function sky() {
+  const cv = document.getElementById('sky'), ctx = cv.getContext('2d');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let stars = [], w = 0, h = 0;
+  const size = () => {
+    const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
+    w = r.width; h = r.height; cv.width = w * d; cv.height = h * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    let seed = 11; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    stars = Array.from({ length: Math.round((w * h) / 6000) }, () => ({ x: rnd() * w, y: rnd() * h, r: rnd() * 1.2 + .2, p: rnd() * 6.28, s: rnd() * .8 + .2 }));
+  };
+  const draw = (t) => {
+    ctx.clearRect(0, 0, w, h);
+    for (const s of stars) { ctx.fillStyle = `rgba(239,232,214,${(still ? .5 : .3 + .3 * Math.sin(s.p + t / 1000 * s.s)).toFixed(3)})`; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill(); }
+    if (!still) requestAnimationFrame(draw);
+  };
+  size(); addEventListener('resize', size); if (still) draw(0); else requestAnimationFrame(draw);
+}
+
+function start(data) {
+  D = data; B = D.battle; S = D.sides; ev = B.events;
+  document.getElementById('when').textContent = `Небо на ${D.when}`;
+  document.getElementById('vsnote').textContent = `${B.rounds} раундов · по зерну ${D.seed}`;
+  document.getElementById('f0').innerHTML = fighterHtml(0);
+  document.getElementById('f1').innerHTML = fighterHtml(1);
+  document.getElementById('wheel').innerHTML = wheel();
+  skyList();
+  document.getElementById('mods').innerHTML = modsHtml(0) + modsHtml(1);
+  logHtml();
+  document.getElementById('result').innerHTML = resultHtml();
+  document.getElementById('foot').textContent = `Посчитано программой «Джйотиш» по карточкам «${S[0].name}» и «${S[1].name}» и небу на ${D.when}. ` +
+    `Бой — по зерну ${D.seed}: повторяется один в один. Боевые числа и правила хода — первая версия. Дат рождения в бою нет.`;
+  show(-1);
+  document.getElementById('play').addEventListener('click', play);
+  document.getElementById('step').addEventListener('click', () => { stop(); show(Math.min(ev.length - 1, k + 1)); });
+  document.getElementById('reset').addEventListener('click', () => { stop(); show(-1); });
+  document.getElementById('end').addEventListener('click', () => { stop(); show(ev.length - 1); document.getElementById('result').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' }); });
+  document.getElementById('speed').addEventListener('change', () => { if (timer) { stop(); play(); } });
+  sky();
+}
+(async () => {
+  const id = location.hash.slice(1).replace(/[^0-9a-f]/gi, '');
+  const now = document.getElementById('now');
+  if (!id) { now.innerHTML = '<span class="r">Бой не выбран</span><h3>Откройте ссылку на бой</h3><p>Ссылку присылает тот, кто устроил бой в программе «Джйотиш».</p>'; return; }
+  now.innerHTML = '<span class="r">Загрузка</span><h3>Бой загружается…</h3>';
+  try {
+    const r = await fetch('https://api.github.com/gists/' + id);
+    if (!r.ok) throw new Error('gist ' + r.status);
+    const g = await r.json();
+    const f = g.files['duel.json'];
+    const text = f.truncated ? await (await fetch(f.raw_url)).text() : f.content;
+    start(JSON.parse(text));
+  } catch (e) {
+    now.innerHTML = '<span class="r">Не загрузилось</span><h3>Бой не найден</h3><p>Проверьте ссылку или откройте её позже: GitHub отвечает не на все запросы подряд.</p>';
+  }
+})();
+</script>
+</body></html>

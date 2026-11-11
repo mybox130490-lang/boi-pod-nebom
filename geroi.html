@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><title>Герой по рождению</title><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head>
+<body><title>Герой по рождению</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Forum&family=Onest:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Раскладка: ночное небо джйотиша — сверху карточка героя как главный предмет, ниже паспорт героя лентой разделов;
+   один мир (тёмный), цвета храмовых красок: индиго неба, шафран, киноварь, туласи. */
+:root {
+  --ink: #0b0e21;
+  --ink-2: #131935;
+  --ink-3: #1c2347;
+  --parchment: #efe8d6;
+  --dim: #a7a5c2;
+  --saffron: #eaa53c;
+  --sindoor: #e5583c;
+  --tulsi: #63c283;
+  --line: rgba(239, 232, 214, .12);
+  --line-2: rgba(239, 232, 214, .22);
+  --display: 'Forum', 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --body: 'Onest', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --k-active: #ff8a50; --k-blessing: #f2c230; --k-growing: #6fcf7a; --k-reserve: #5aa9ff; --k-hidden: #b388ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--ink); }
+body { margin: 0; background: var(--ink); color: var(--parchment); font: 400 16px/1.6 var(--body); }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--ink); }
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--display); font-weight: 400; text-wrap: balance; margin: 0; }
+a { color: var(--saffron); }
+button { font: inherit; }
+:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
+.eyebrow { font: 500 12px/1.3 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--saffron); }
+.muted { color: var(--dim); }
+.mono { font-family: var(--mono); }
+
+/* шапка */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--ink) 88%, transparent);
+  backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top .wrap { display: flex; align-items: center; gap: 16px; padding-block: 10px; flex-wrap: wrap; }
+.brand { font-family: var(--display); font-size: 22px; letter-spacing: .02em; white-space: nowrap; }
+.brand b { color: var(--saffron); font-weight: 400; }
+.switch { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+.switch button { border: 1px solid var(--line-2); background: transparent; color: var(--parchment); border-radius: 999px; padding: 5px 12px;
+  font-size: 13.5px; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; }
+.switch button i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
+.switch button[aria-pressed="true"] { background: var(--parchment); color: var(--ink); border-color: var(--parchment); }
+
+/* вступление */
+.intro { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); }
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.intro .wrap { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 470px); gap: 48px; align-items: center; padding-block: 56px 64px; }
+.intro h1 { font-size: clamp(36px, 5.4vw, 64px); line-height: 1.02; margin: 14px 0 18px; }
+.intro h1 em { font-style: normal; color: var(--saffron); }
+.intro .lead { font-size: 18px; color: var(--dim); max-width: 34em; margin: 0 0 26px; }
+.steps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 0; padding: 0; list-style: none; counter-reset: s; }
+.steps li { border-top: 1px solid var(--line-2); padding-top: 10px; font-size: 13.5px; color: var(--dim); counter-increment: s; }
+.steps li b { display: block; color: var(--parchment); font-weight: 600; font-size: 14.5px; }
+.steps li::before { content: counter(s); font: 500 11px var(--mono); color: var(--saffron); display: block; margin-bottom: 4px; }
+.born { margin-top: 18px; font: 400 13px var(--mono); color: var(--dim); }
+
+/* карточка */
+.hcard { padding: 3px; border-radius: 22px; background: linear-gradient(140deg, var(--c1), var(--c2) 55%, var(--aura));
+  box-shadow: 0 30px 70px -26px var(--c2), 0 0 0 1px rgba(0, 0, 0, .3); transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform .25s ease-out; }
+.hcard-in { border-radius: 19px; padding: 20px 20px 12px; position: relative; overflow: hidden;
+  background: radial-gradient(120% 70% at 85% -10%, color-mix(in srgb, var(--aura) 40%, transparent), transparent 60%),
+    radial-gradient(90% 60% at -10% 110%, color-mix(in srgb, var(--c1) 28%, transparent), transparent 60%), #12142a; }
+.hc-head { display: flex; gap: 14px; align-items: center; }
+.hc-emblem { flex: 0 0 96px; height: 96px; }
+.hc-emblem svg { width: 100%; height: 100%; display: block; }
+.hc-name { font: 500 11.5px var(--mono); letter-spacing: .16em; text-transform: uppercase; color: rgba(239, 232, 214, .62); }
+.hc-class { font-family: var(--display); font-size: 34px; line-height: 1.05; background: linear-gradient(90deg, #fff 30%, var(--c1));
+  -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hc-path { font-size: 14.5px; color: rgba(239, 232, 214, .85); } .hc-path span { color: var(--c1); font-weight: 600; }
+.hc-about { font-size: 13px; color: rgba(239, 232, 214, .6); margin: 10px 0 14px; font-style: italic; }
+.hc-vitals { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+.hc-vitals .v { border-radius: 12px; padding: 8px 12px; background: rgba(255, 255, 255, .05); border: 1px solid rgba(255, 255, 255, .08); }
+.hc-vitals b { display: block; font: 500 26px/1.1 var(--mono); }
+.hc-vitals span { font: 500 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(239, 232, 214, .55); }
+.hc-vitals .hp b { color: #ff8585; } .hc-vitals .mp b { color: #93cbff; }
+.hc-stats { position: relative; display: grid; gap: 6px; margin-bottom: 14px; }
+.hc-stat { display: grid; grid-template-columns: 86px 1fr 30px; gap: 8px; align-items: center; font-size: 13.5px; }
+.hc-stat .t { height: 8px; border-radius: 5px; background: rgba(255, 255, 255, .09); overflow: hidden; }
+.hc-stat .t i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--c2), var(--c1)); }
+.hc-stat b { text-align: right; font: 500 13.5px var(--mono); }
+.hc-stats .norm { position: absolute; top: -3px; bottom: -3px; left: calc(94px + (100% - 140px) * .5); border-left: 1px dashed rgba(239, 232, 214, .35); }
+.hc-ult { border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; border: 1px solid color-mix(in srgb, var(--aura) 60%, transparent);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--aura) 33%, transparent), rgba(255, 255, 255, .03)); }
+.hc-ult b { display: block; font-family: var(--display); font-size: 22px; font-weight: 400; }
+.hc-ult span, .hc-soul { font-size: 12.5px; color: rgba(239, 232, 214, .75); }
+.hcard .lbl { display: block; font: 500 10px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: rgba(239, 232, 214, .5); }
+.hc-skills { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+.hc-skill { border-radius: 10px; padding: 6px 9px; background: rgba(255, 255, 255, .05); border-left: 3px solid var(--k); }
+.hc-skill b { display: block; font-size: 13px; font-weight: 600; } .hc-skill span { font-size: 11px; color: rgba(239, 232, 214, .58); }
+.dbl { color: #ffe08a; font-style: normal; }
+.hc-soul { margin-bottom: 8px; } .hc-soul b { color: #fff; }
+.hc-stars { font-size: 12.5px; color: #ffe08a; margin-bottom: 6px; }
+.hc-weak { list-style: none; margin: 0 0 8px; padding: 0; font-size: 12.5px; color: rgba(239, 232, 214, .75); }
+.hc-weak b { color: #ffb59a; }
+.hc-foot { border-top: 1px solid rgba(255, 255, 255, .08); padding-top: 8px; font: 400 11px var(--mono); color: rgba(239, 232, 214, .4); text-align: center; }
+
+/* паспорт */
+.passport .wrap { display: grid; gap: 0; }
+.sec { display: grid; grid-template-columns: minmax(0, 260px) minmax(0, 1fr); gap: 32px; padding-block: 44px; border-bottom: 1px solid var(--line); }
+.sec > header h2 { font-size: 34px; line-height: 1.08; margin-top: 8px; }
+.sec > header p { color: var(--dim); font-size: 14px; margin: 10px 0 0; }
+.sec > div { min-width: 0; }
+.story { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; }
+.story li { display: grid; grid-template-columns: 36px minmax(0, 1fr); gap: 12px; font-size: 16.5px; }
+.story li span { font-size: 22px; color: var(--saffron); text-align: center; line-height: 1.4; }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tile { background: var(--ink-2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.tile .eyebrow { color: var(--dim); }
+.tile p { margin: 6px 0 0; font-size: 15px; }
+.tile p.stance { font-size: 26px; margin-top: 6px; }
+.stance { font-family: var(--display); font-size: 28px; line-height: 1.15; margin: 0 0 6px; }
+.chips-line { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 18px 0; }
+.chips-line span { border: 1px solid var(--line-2); border-radius: 999px; padding: 5px 13px; font-size: 14px; background: var(--ink-2); }
+.chips-line i { color: var(--saffron); font-style: normal; }
+.tactic { border-left: 3px solid var(--saffron); padding: 4px 0 4px 14px; font-size: 17px; margin: 0 0 22px; }
+.tablewrap { overflow-x: auto; }
+table.num { width: 100%; border-collapse: collapse; font-size: 14px; }
+table.num td { padding: 8px 10px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+table.num td:nth-child(2) { font: 500 15px var(--mono); white-space: nowrap; color: var(--saffron); }
+table.num td:nth-child(3) { color: var(--dim); font: 400 12.5px var(--mono); }
+.ult-big { border-radius: 18px; padding: 22px 24px; border: 1px solid color-mix(in srgb, var(--aura) 55%, transparent);
+  background: radial-gradient(90% 120% at 100% 0, color-mix(in srgb, var(--aura) 30%, transparent), transparent 60%), var(--ink-2); }
+.ult-big h3 { font-size: 40px; line-height: 1.05; margin: 6px 0 12px; }
+.ult-big .scene { font-size: 17px; margin: 0 0 14px; }
+.ult-big .eff { font: 500 14.5px var(--mono); color: var(--saffron); margin: 0 0 6px; }
+.skills { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.skill { background: var(--ink-2); border: 1px solid var(--line); border-top: 3px solid var(--k); border-radius: 14px; padding: 14px 16px; display: grid; gap: 8px; align-content: start; }
+.skill .hd { display: flex; gap: 10px; align-items: baseline; }
+.skill .gl { font-size: 22px; color: var(--k); width: 24px; text-align: center; }
+.skill h3 { font-size: 22px; line-height: 1.1; }
+.pill { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--k); border: 1px solid color-mix(in srgb, var(--k) 55%, transparent);
+  border-radius: 999px; padding: 2px 8px; white-space: nowrap; }
+.skill .bar { display: grid; grid-template-columns: 1fr 34px; gap: 8px; align-items: center; }
+.skill .bar span { height: 6px; border-radius: 4px; background: rgba(255, 255, 255, .08); overflow: hidden; }
+.skill .bar span i { display: block; height: 100%; background: var(--k); }
+.skill .bar b { font: 500 13px var(--mono); text-align: right; }
+.skill p { margin: 0; font-size: 14.5px; }
+.skill .how { color: var(--dim); font-size: 13.5px; }
+.skill .why { font: 400 12px var(--mono); color: var(--dim); }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.weak { display: grid; gap: 12px; margin: 0; padding: 0; list-style: none; }
+.weak li { background: var(--ink-2); border: 1px solid var(--line); border-left: 3px solid var(--sindoor); border-radius: 12px; padding: 12px 16px; }
+.weak b { color: #ffb59a; }
+.weak p { margin: 6px 0 0; color: var(--dim); font-size: 14.5px; }
+.look p { margin: 0 0 8px; font-size: 16px; }
+.swatches { display: flex; gap: 10px; margin: 14px 0; flex-wrap: wrap; }
+.swatches div { display: grid; gap: 4px; font: 400 11.5px var(--mono); color: var(--dim); }
+.swatches i { width: 56px; height: 36px; border-radius: 8px; border: 1px solid var(--line-2); display: block; }
+.prompt textarea { width: 100%; min-height: 120px; background: var(--ink-2); color: var(--parchment); border: 1px solid var(--line-2); border-radius: 12px;
+  padding: 12px 14px; font: 400 14px/1.55 var(--body); resize: vertical; }
+.btn { border: 1px solid var(--saffron); color: var(--ink); background: var(--saffron); border-radius: 999px; padding: 8px 18px; font-weight: 600; cursor: pointer; margin-top: 10px; }
+.timeline { background: var(--ink-2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 12px 4px; overflow-x: auto; }
+.timeline svg { display: block; width: 100%; min-width: 620px; height: auto; }
+.periods { list-style: none; margin: 16px 0 0; padding: 0; display: grid; gap: 6px; }
+.periods li { display: grid; grid-template-columns: 200px 110px 110px minmax(0, 1fr); gap: 10px; align-items: baseline; font-size: 14px;
+  padding: 7px 10px; border-radius: 10px; background: var(--ink-2); }
+.periods li.now { box-shadow: inset 3px 0 0 var(--saffron); }
+.periods .when { font: 400 13px var(--mono); color: var(--dim); }
+.periods em { font-style: normal; font-weight: 600; }
+.k-power { color: var(--tulsi); } .k-trial { color: var(--sindoor); } .k-even { color: var(--dim); }
+.boss { margin-top: 16px; border-radius: 14px; padding: 14px 16px; border: 1px solid rgba(229, 88, 60, .45);
+  background: linear-gradient(120deg, rgba(229, 88, 60, .16), transparent 70%); }
+.boss b { font-family: var(--display); font-size: 22px; font-weight: 400; }
+details.proof summary { cursor: pointer; color: var(--saffron); font-weight: 600; }
+
+/* точность, герои, правила */
+.compare { width: 100%; border-collapse: collapse; font-size: 15px; }
+.compare th { text-align: left; font: 500 11px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); padding: 8px 10px 8px 0; }
+.compare td { padding: 10px 10px 10px 0; border-top: 1px solid var(--line); }
+.compare td.bad { color: #ff9f8a; text-decoration: line-through; text-decoration-color: rgba(229, 88, 60, .6); }
+.compare td.good { color: var(--tulsi); font-weight: 600; }
+.gallery { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.mini { text-align: left; border-radius: 16px; padding: 2px; background: linear-gradient(140deg, var(--c1), var(--c2)); border: 0; cursor: pointer; color: var(--parchment); }
+.mini > div { border-radius: 14px; background: #12142a; padding: 14px; display: grid; gap: 4px; height: 100%; }
+.mini .nm { font: 500 10.5px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--dim); }
+.mini .cl { font-family: var(--display); font-size: 24px; line-height: 1.1; }
+.mini .el { font-size: 13px; color: var(--c1); font-weight: 600; }
+.mini .ul { font-size: 12.5px; color: var(--dim); }
+.mini[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--parchment); }
+.rules { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.rules li { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 14px; padding: 9px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.rules li b { font-weight: 600; }
+.signs { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+.signs div { background: var(--ink-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 13px; }
+.signs div span { display: block; color: var(--dim); font: 400 11px var(--mono); }
+footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
+
+@media (max-width: 960px) {
+  .intro .wrap { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-block: 36px 44px; }
+  .sec { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-block: 34px; }
+  .gallery { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .signs { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tiles, .skills, .pair { grid-template-columns: minmax(0, 1fr); }
+  .periods li { grid-template-columns: minmax(0, 1fr) auto; }
+  .periods li small { grid-column: 1 / -1; }
+  .rules li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .switch { margin-left: 0; }
+  .hc-class { font-size: 28px; }
+  .ult-big h3 { font-size: 32px; }
+}
+@media (prefers-reduced-motion: reduce) { .hcard { transition: none; transform: none; } }
+</style>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Герой <b>по рождению</b></div>
+    <div class="switch" id="switch" role="group" aria-label="Чей герой"></div>
+  </div>
+</header>
+
+<section class="intro">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Джйотиш × ролевая игра</div>
+      <h1>Твой герой рассчитан <em>по небу</em> минуты твоего рождения</h1>
+      <p class="lead">Дата, время и место рождения — и движок джйотиша считает карту так же точно, как астрологические программы.
+        Правила превращают её в героя: класс, семь характеристик, девять умений, ульту, слабости, облик и судьбу по периодам планет.
+        Двух одинаковых героев почти не бывает.</p>
+      <ol class="steps">
+        <li><b>Рождение</b>дата, время, место</li>
+        <li><b>Карта</b>Swiss Ephemeris, как VedicHoro</li>
+        <li><b>Правила</b>знак, дом, сила, накшатра</li>
+        <li><b>Герой</b>бой, умения, облик, судьба</li>
+      </ol>
+      <div class="born" id="born"></div>
+    </div>
+    <div id="card"></div>
+  </div>
+</section>
+
+<main class="passport"><div class="wrap" id="passport"></div></main>
+
+<section>
+  <div class="wrap">
+    <div class="sec" id="accuracy" hidden>
+      <header><div class="eyebrow">Точность</div><h2>Почему расчёт, а не догадка</h2>
+        <p>Чат-бот описывает карту на глаз. На карте Саши DeepSeek ошибся в четырёх местах — и герой вышел бы другим.</p></header>
+      <div class="tablewrap">
+        <table class="compare">
+          <thead><tr><th></th><th>DeepSeek на глаз</th><th>Движок</th></tr></thead>
+          <tbody>
+            <tr><td>Лагна</td><td class="bad">Овен 6°12′</td><td class="good" id="cmp-lagna">—</td></tr>
+            <tr><td>Луна</td><td class="bad">Вишакха, 3-я пада</td><td class="good" id="cmp-moon">—</td></tr>
+            <tr><td>Юпитер</td><td class="bad">Рак, экзальтация — «имба»</td><td class="good">Близнецы: DeepSeek взял западный зодиак</td></tr>
+            <tr><td>Период сейчас</td><td class="bad">Сатурн → Меркурий</td><td class="good" id="cmp-dasha">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="sec" id="gallery-sec">
+      <header><div class="eyebrow">Герои</div><h2>Каждый — свой</h2>
+        <p>Четыре даты — четыре стихии. Нажмите на карточку, чтобы открыть паспорт героя.</p></header>
+      <div class="gallery" id="gallery"></div>
+    </div>
+
+    <div class="sec">
+      <header><div class="eyebrow">Правила</div><h2>Что из чего считается</h2>
+        <p>Числа даёт движок. Соответствия — первая версия, их можно менять.</p></header>
+      <div>
+        <ul class="rules">
+          <li><b>Класс</b><span>знак лагны — восходящий знак в минуту рождения</span></li>
+          <li><b>Путь</b><span>дом, в котором стоит управитель лагны</span></li>
+          <li><b>Характеристики</b><span>шад-бала планеты к её норме: 50 — ровно норма, Сила — Марс, Ловкость — Меркурий, Стойкость — Сатурн, Воля — Солнце, Мудрость — Юпитер, Обаяние — Венера, Дух — Луна</span></li>
+          <li><b>Здоровье и дух</b><span>1000 × шад-бала управителя лагны и Луны</span></li>
+          <li><b>Ульта</b><span>атмакарака — планета с самым большим градусом в знаке, планета души</span></li>
+          <li><b>Умения</b><span>девять планет; название — от стихии её знака, вид — от дома: кендра — активное, кона — благословение, упачая — растущее, 2-й — запас, 8-й и 12-й — скрытое</span></li>
+          <li><b>Двойные звёзды</b><span>варготтама: планета в одном знаке в раши и в навамше</span></li>
+          <li><b>Слабости</b><span>планета в падении, сожжённая Солнцем, проигравшая войну планет</span></li>
+          <li><b>Душа</b><span>накшатра Луны — пассивное умение</span></li>
+          <li><b>Судьба</b><span>Вимшоттари-даша; окно силы или испытание — по природе планеты для этой лагны, падению и силе; Саде-Сати — Сатурн над Луной</span></li>
+          <li><b>Облик</b><span>знак лагны, планеты в лагне, сильнейшая планета — аура и оружие</span></li>
+        </ul>
+        <div class="signs" id="signs"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="foot"><div class="wrap" id="foot"></div></footer>
+
+<script>
+let HEROES = [], RULES = null;
+const GLYPH = { su: '☉', mo: '☽', ma: '♂', me: '☿', ju: '♃', ve: '♀', sa: '♄', ra: '☊', ke: '☋' };
+const RU = { su: 'Солнце', mo: 'Луна', ma: 'Марс', me: 'Меркурий', ju: 'Юпитер', ve: 'Венера', sa: 'Сатурн', ra: 'Раху', ke: 'Кету' };
+const KIND_VAR = { active: '--k-active', blessing: '--k-blessing', growing: '--k-growing', reserve: '--k-reserve', hidden: '--k-hidden' };
+const PERIOD = { power: 'Окно силы', trial: 'Испытание', even: 'Ровно' };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const vars = (h) => `--c1:${h.colors[0]};--c2:${h.colors[1]};--aura:${h.look.aura.color}`;
+const kvar = (k) => `--k:var(${KIND_VAR[k]})`;
+
+function emblem(h) {
+  let dots = '';
+  for (let i = 0; i < 27; i++) {
+    const a = (i / 27) * Math.PI * 2 - Math.PI / 2;
+    const x = (50 + 42 * Math.cos(a)).toFixed(2), y = (50 + 42 * Math.sin(a)).toFixed(2);
+    const lg = i === h.emblem.index, mo = i === h.soul.index;
+    dots += `<circle cx="${x}" cy="${y}" r="${lg || mo ? 5 : 1.8}" fill="${lg ? h.colors[0] : mo ? '#e9edf5' : 'rgba(239,232,214,.35)'}"` +
+      `${lg || mo ? ` stroke="${lg ? '#fff' : h.colors[1]}" stroke-width="1"` : ''}><title>${lg ? 'лагна' : mo ? 'Луна' : ''}</title></circle>`;
+  }
+  return `<svg viewBox="0 0 100 100" role="img" aria-label="Колесо 27 накшатр: лагна и Луна">
+    <circle cx="50" cy="50" r="42" fill="none" stroke="${h.colors[0]}" stroke-opacity=".5" stroke-width=".8"/>
+    <circle cx="50" cy="50" r="31" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.14)" stroke-width=".6"/>${dots}
+    <text x="50" y="48" text-anchor="middle" fill="#fff" font-family="Forum, Georgia, serif" font-size="10.5">${esc(h.emblem.nakshatra)}</text>
+    <text x="50" y="60" text-anchor="middle" fill="rgba(239,232,214,.7)" font-family="Onest, sans-serif" font-size="7.5">${esc(h.lagna.sign)}</text></svg>`;
+}
+
+function card(h) {
+  const stats = h.stats.map((s) => `<div class="hc-stat" title="${esc(s.hint)}"><span>${esc(s.name)}</span>` +
+    `<span class="t"><i style="width:${s.value}%"></i></span><b>${s.value}</b></div>`).join('');
+  const skills = h.skills.map((s) => `<div class="hc-skill" style="${kvar(s.kind)}"><b>${esc(s.name)}${s.double ? ' <i class="dbl">✦✦</i>' : ''}</b>` +
+    `<span>${esc(s.kindLabel)} · ${s.power}</span></div>`).join('');
+  const weak = h.weaknesses.length ? h.weaknesses.map((w) => `<li>⚠ <b>${esc(w.title)}</b> — ${esc(w.effect)}</li>`).join('')
+    : '<li>Слабых мест по падению, сожжению и войне планет нет</li>';
+  return `<article class="hcard" style="${vars(h)}"><div class="hcard-in">
+    <header class="hc-head"><div class="hc-emblem">${emblem(h)}</div>
+      <div><div class="hc-name">${esc(h.name)}</div><div class="hc-class">${esc(h.className)}</div>
+      <div class="hc-path">${esc(h.path)} · <span>${esc(h.elementName)}</span></div></div></header>
+    <p class="hc-about">${esc(cap(h.classAbout))}; ${esc(h.pathAbout)}</p>
+    <div class="hc-vitals"><div class="v hp"><b>${h.hp}</b><span>Здоровье</span></div><div class="v mp"><b>${h.mana}</b><span>Дух</span></div></div>
+    <div class="hc-stats">${stats}<div class="norm" title="50 — норма"></div></div>
+    <div class="hc-ult"><span class="lbl">Ульта · атмакарака — ${esc(RU[h.ultimate.graha])}</span>
+      <b>${esc(h.ultimate.name)}${h.ultimate.double ? ' <i class="dbl">✦✦</i>' : ''}</b><span>${esc(h.ultimate.does)} · сила ${h.ultimate.power}</span></div>
+    <div class="hc-skills">${skills}</div>
+    <div class="hc-soul"><span class="lbl">Душа · ${esc(h.soul.nakshatra)}</span><b>${esc(h.soul.passive)}</b> — ${esc(h.soul.effect)}</div>
+    ${h.doubleStars.length ? `<div class="hc-stars">✦✦ Рождён под двойными звёздами: ${h.doubleStars.map((g) => RU[g]).join(' · ')}</div>` : ''}
+    <ul class="hc-weak">${weak}</ul>
+    <footer class="hc-foot">${esc(h.lagna.sign)} ${esc(h.lagna.degree)} · ${esc(h.lagna.nakshatra)} ${h.lagna.pada}</footer>
+  </div></article>`;
+}
+
+const parseD = (s) => { const [d, m, y] = s.split('.').map(Number); return new Date(y, m - 1, d).getTime(); };
+
+function timeline(h) {
+  const list = [h.time.ad, ...h.time.windows].filter(Boolean);
+  if (!list.length) return '';
+  const t0 = parseD(list[0].start), t1 = parseD(list[list.length - 1].end);
+  const W = 1000, X = (t) => 10 + ((t - t0) / (t1 - t0)) * (W - 20);
+  const col = { power: '#63c283', trial: '#e5583c', even: '#6f6d8f' };
+  let svg = '';
+  const y0 = new Date(t0).getFullYear() + 1, y1 = new Date(t1).getFullYear();
+  for (let y = y0; y <= y1; y++) {
+    const x = X(new Date(y, 0, 1).getTime());
+    svg += `<line x1="${x}" x2="${x}" y1="40" y2="112" stroke="rgba(239,232,214,.14)"/>` +
+      `<text x="${x}" y="130" text-anchor="middle" fill="#a7a5c2" font-family="IBM Plex Mono, monospace" font-size="13">${y}</text>`;
+  }
+  list.forEach((p) => {
+    const a = X(parseD(p.start)), b = X(parseD(p.end)), w = Math.max(2, b - a - 2);
+    const label = w > 92 ? `${GLYPH[p.lord]} ${p.lordName}` : w > 26 ? GLYPH[p.lord] : '';
+    svg += `<rect x="${a + 1}" y="56" width="${w}" height="40" rx="7" fill="${col[p.kind]}" fill-opacity=".9"><title>${esc(p.lordName)}: ${esc(p.start)} — ${esc(p.end)}</title></rect>` +
+      (label ? `<text x="${a + 1 + w / 2}" y="81" text-anchor="middle" fill="#0b0e21" font-family="Onest, sans-serif" font-weight="600" font-size="14">${esc(label)}</text>` : '');
+  });
+  const now = X(Date.now());
+  svg += `<line x1="${now}" x2="${now}" y1="30" y2="104" stroke="#eaa53c" stroke-width="2"/>` +
+    `<text x="${Math.min(Math.max(now, 40), W - 40)}" y="22" text-anchor="middle" fill="#eaa53c" font-family="IBM Plex Mono, monospace" font-size="13">сейчас</text>`;
+  return `<div class="timeline"><svg viewBox="0 0 ${W} 140" role="img" aria-label="Периоды планет на ближайшие годы">${svg}</svg></div>`;
+}
+
+function periodRow(p, now) {
+  return `<li class="${now ? 'now' : ''}"><span class="when">${esc(p.start)} — ${esc(p.end)}</span><b>${GLYPH[p.lord]} ${esc(p.lordName)}</b>` +
+    `<em class="k-${p.kind}">${PERIOD[p.kind]}</em><small class="muted">${esc(p.why)}</small></li>`;
+}
+
+function sec(eyebrow, title, note, body) {
+  return `<div class="sec"><header><div class="eyebrow">${eyebrow}</div><h2>${title}</h2>${note ? `<p>${note}</p>` : ''}</header><div>${body}</div></div>`;
+}
+
+function passport(h) {
+  const c = h.combat;
+  const glyphs = ['↑', '⌂', GLYPH[h.look.aura.graha], GLYPH[h.ultimate.graha], '☽'];
+  const story = `<ul class="story">${h.story.map((s, i) => `<li><span>${glyphs[i]}</span><div>${esc(s)}</div></li>`).join('')}</ul>`;
+  const fight = `<p class="stance">${esc(c.stance)}</p>
+    <p class="muted">Бой ${esc(c.range)} · оружие — ${esc(c.weapon)}</p>
+    <div class="tiles" style="margin-top:16px">
+      <div class="tile"><div class="eyebrow">Обычная атака</div><p>${esc(cap(c.basic))}</p></div>
+      <div class="tile"><div class="eyebrow">Сильная атака</div><p>${esc(cap(c.heavy))}</p></div>
+      <div class="tile"><div class="eyebrow">Передвижение</div><p>${esc(cap(c.move))}</p></div>
+      <div class="tile"><div class="eyebrow">Защита</div><p>${esc(cap(c.guard))}</p></div>
+    </div>
+    <div class="chips-line" aria-label="Комбо">${c.combo.map((x) => `<span>${esc(x)}</span>`).join('<i>→</i>')}</div>
+    <p class="tactic">${esc(c.tactic)}</p>
+    <div class="tablewrap"><table class="num"><tbody>${c.numbers.map((n) =>
+      `<tr><td>${esc(n.name)}</td><td>${esc(n.value)}</td><td>${esc(n.why)}</td></tr>`).join('')}</tbody></table></div>`;
+  const u = h.ultimate;
+  const ult = `<div class="ult-big" style="${vars(h)}"><div class="eyebrow">${GLYPH[u.graha]} Атмакарака — ${esc(RU[u.graha])}</div>
+    <h3>${esc(u.name)}${u.double ? ' <i class="dbl">✦✦</i>' : ''}</h3>
+    <p class="scene">${esc(u.scene)}</p><p class="eff">${esc(cap(u.effectText))}</p>
+    <p class="muted">Заряжается ${esc(c.numbers.find((n) => n.name === 'Заряд ульты').value)} боя · стихия — ${esc(u.status.name)}: ${esc(u.status.effect)} · ${esc(u.why)}</p></div>`;
+  const skills = `<div class="skills">${h.skills.map((s) => `<article class="skill" style="${kvar(s.kind)}">
+      <div class="hd"><span class="gl">${GLYPH[s.graha]}</span><h3>${esc(s.name)}${s.double ? ' <i class="dbl">✦✦</i>' : ''}</h3></div>
+      <div><span class="pill">${esc(s.kindLabel)}</span></div>
+      <div class="bar"><span><i style="width:${s.power}%"></i></span><b>${s.power}</b></div>
+      <p>${esc(s.battle)}</p>
+      <p class="how">${esc(s.how)} Стихия — ${esc(s.status.name)}: ${esc(s.status.effect)}.</p>
+      <p class="why">${esc(RU[s.graha])}: ${esc(s.why.replace(RU[s.graha] + ' ', ''))}</p>
+    </article>`).join('')}</div>`;
+  const soul = `<div class="pair">
+      <div class="tile"><div class="eyebrow">Душа · ${esc(h.soul.nakshatra)}, пада ${h.soul.pada}</div>
+        <p class="stance" style="margin-top:6px">${esc(h.soul.passive)}</p><p>${esc(cap(h.soul.effect))}.</p>
+        <p class="muted">Символ — ${esc(h.soul.symbol)}, божество — ${esc(h.soul.deity)}</p></div>
+      <div class="tile"><div class="eyebrow">Двойные звёзды</div>
+        <p class="stance" style="margin-top:6px">${h.doubleStars.length ? h.doubleStars.map((g) => `${GLYPH[g]} ${RU[g]}`).join(' · ') : 'нет'}</p>
+        <p>${h.doubleStars.length ? 'Эти планеты стоят в одном знаке и в основной карте, и в навамше — их умения помечены ✦✦.' : 'Ни одна планета не стоит в одном знаке в раши и навамше.'}</p></div>
+    </div>`;
+  const weak = h.weaknesses.length ? `<ul class="weak">${h.weaknesses.map((w) => `<li><b>${esc(w.title)}</b> — ${esc(w.effect)}.
+      <p>Как обыграть: ${esc(w.counter)}.</p><p class="mono" style="font-size:12px">${esc(w.why)}</p></li>`).join('')}</ul>`
+    : '<p>Слабых мест по падению, сожжению и войне планет у этого героя нет — редкость.</p>';
+  const L = h.look;
+  const look = `<div class="look"><p>${esc(cap(L.build))}.</p>${L.marks.map((m) => `<p>${esc(m)}.</p>`).join('')}
+    <p>Аура — ${esc(L.aura.colorName)} (${esc(RU[L.aura.graha])}), оружие — <b>${esc(L.weapon)}</b>, эмблема на доспехе — ${esc(h.emblem.symbol)}.</p>
+    <div class="swatches">${L.palette.map((c, i) => `<div><i style="background:${c}"></i>${['стихия', 'стихия', 'аура'][i]}</div>`).join('')}</div>
+    <label class="prompt" for="prompt"><span class="eyebrow">Промпт для картинки</span></label>
+    <div class="prompt"><textarea id="prompt" readonly>${esc(L.prompt)}</textarea></div>
+    <button class="btn" type="button" id="copy">Скопировать промпт</button></div>`;
+  const t = h.time;
+  const fate = `${timeline(h)}
+    ${t.md ? `<p style="margin:14px 0 0">Махадаша <b>${GLYPH[t.md.lord]} ${esc(t.md.lordName)}</b> — до ${esc(t.md.end)}.</p>` : ''}
+    <ul class="periods">${[t.ad].filter(Boolean).map((p) => periodRow(p, true)).join('')}${t.windows.map((p) => periodRow(p, false)).join('')}</ul>
+    ${t.effects.length ? `<p style="margin-top:14px">Сейчас: ${t.effects.map(esc).join('; ')}.</p>` : ''}
+    ${t.sadeSati ? `<div class="boss"><span class="eyebrow" style="color:#ff9f8a">Личный рейд-босс</span><br><b>Саде-Сати</b> — Сатурн над Луной, ${esc(t.sadeSati)}.
+      Победишь — получишь награду Сатурна: стойкость и терпение.</div>` : ''}`;
+  const proof = `<details class="proof"><summary>Как рассчитано — каждое число</summary><div class="tablewrap" style="margin-top:10px"><table class="num"><tbody>${h.proof.map((r) =>
+    `<tr><td>${esc(r.what)}</td><td>${esc(r.value)}</td><td>${esc(r.why)}</td></tr>`).join('')}</tbody></table></div></details>`;
+  return [
+    sec('Паспорт', 'Почему именно такой герой', 'Пять строк карты, из которых он сложился.', story),
+    sec('Бой', 'Как сражается', 'Стиль — от класса, числа — от характеристик.', fight),
+    sec('Ульта', 'Удар души', 'Умение атмакараки — самое сильное.', ult),
+    sec('Умения', 'Девять планет — девять умений', 'Восемь здесь, девятое — ульта. Сила умения — характеристика его планеты.', skills),
+    sec('Суть', 'Душа и двойные звёзды', '', soul),
+    sec('Слабости', 'Где он уязвим', 'И как это обыграть.', weak),
+    sec('Облик', 'Как выглядит', 'Из знака лагны, планет в лагне и сильнейшей планеты.', look),
+    sec('Судьба', 'Окна силы и испытания', 'Периоды планет по Вимшоттари: зелёное — окно силы, красное — испытание.', fate),
+    sec('Проверка', 'Откуда цифры', '', proof),
+  ].join('');
+}
+
+function render(id) {
+  const h = HEROES.find((x) => x.id === id) || HEROES[0];
+  document.getElementById('card').innerHTML = card(h);
+  document.getElementById('passport').innerHTML = passport(h);
+  document.getElementById('born').textContent = h.born ? `Пример — придуманная дата: ${h.born}` : 'Дат рождения на странице нет — только то, что из них посчитано.';
+  document.querySelectorAll('[data-hero]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.hero === h.id)));
+  const copy = document.getElementById('copy');
+  copy.addEventListener('click', () => {
+    const area = document.getElementById('prompt');
+    const done = () => { copy.textContent = 'Скопировано'; };
+    try {
+      navigator.clipboard.writeText(area.value).then(done, () => { area.focus(); area.select(); copy.textContent = 'Выделено — нажмите Ctrl+C'; });
+    } catch (e) { area.focus(); area.select(); copy.textContent = 'Выделено — нажмите Ctrl+C'; }
+  });
+  tilt();
+}
+
+function tilt() {
+  const el = document.querySelector('#card .hcard');
+  if (!el || matchMedia('(prefers-reduced-motion: reduce)').matches || matchMedia('(hover: none)').matches) return;
+  el.addEventListener('pointermove', (e) => {
+    const r = el.getBoundingClientRect();
+    el.style.setProperty('--ry', ((e.clientX - r.left) / r.width - .5) * 8 + 'deg');
+    el.style.setProperty('--rx', (.5 - (e.clientY - r.top) / r.height) * 8 + 'deg');
+  });
+  el.addEventListener('pointerleave', () => { el.style.setProperty('--rx', '0deg'); el.style.setProperty('--ry', '0deg'); });
+}
+
+function chrome() {
+  const label = (h) => h.example ? `${h.elementName}` : h.name;
+  document.getElementById('switch').innerHTML = HEROES.map((h) =>
+    `<button type="button" data-hero="${h.id}" aria-pressed="false"><i style="background:${h.colors[0]}"></i>${esc(label(h))}</button>`).join('');
+  document.getElementById('gallery').innerHTML = HEROES.map((h) =>
+    `<button type="button" class="mini" data-hero="${h.id}" aria-pressed="false" style="${vars(h)}"><div>
+      <span class="nm">${esc(h.example ? h.born : h.name)}</span><span class="cl">${esc(h.className)}</span>
+      <span class="el">${esc(h.elementName)} · ${esc(h.path)}</span><span class="ul">Ульта «${esc(h.ultimate.name)}» · ✦✦ ${h.doubleStars.length}</span></div></button>`).join('');
+  document.getElementById('signs').innerHTML = RULES.signs.map((s, i) => `<div><span>${esc(s)}</span>${esc(RULES.classes[i].name)}</div>`).join('');
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-hero]');
+    if (!b) return;
+    if (location.hash !== '#' + b.dataset.hero) location.hash = b.dataset.hero; else render(b.dataset.hero);
+    if (b.classList.contains('mini')) document.querySelector('.intro').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  });
+  window.addEventListener('hashchange', () => render(location.hash.slice(1)));
+}
+
+function sky() {
+  const cv = document.getElementById('sky');
+  const ctx = cv.getContext('2d');
+  const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let stars = [], w = 0, h = 0;
+  const size = () => {
+    const r = cv.getBoundingClientRect(), d = Math.min(2, devicePixelRatio || 1);
+    w = r.width; h = r.height; cv.width = w * d; cv.height = h * d; ctx.setTransform(d, 0, 0, d, 0, 0);
+    let seed = 27;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    stars = Array.from({ length: Math.round((w * h) / 5200) }, () => ({ x: rnd() * w, y: rnd() * h, r: rnd() * 1.3 + .2, p: rnd() * 6.28, s: rnd() * .8 + .2 }));
+  };
+  const draw = (t) => {
+    ctx.clearRect(0, 0, w, h);
+    for (const s of stars) {
+      const a = still ? .55 : .35 + .35 * Math.sin(s.p + t / 1000 * s.s);
+      ctx.fillStyle = `rgba(239,232,214,${a.toFixed(3)})`;
+      ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+    }
+    if (!still) requestAnimationFrame(draw);
+  };
+  size(); addEventListener('resize', size);
+  if (still) draw(0); else requestAnimationFrame(draw);
+}
+
+function start(data) {
+  HEROES = data.heroes; RULES = data.rules;
+  const one = HEROES.length < 2;
+  document.getElementById('gallery-sec').hidden = one;
+  document.getElementById('switch').hidden = one;
+  document.getElementById('foot').textContent = `Посчитано программой «Джйотиш»: Swiss Ephemeris, аянамша — ${data.ayanamsa}, дома по знакам, даты — ${data.today}. Боевые числа — баланс первой версии.`;
+  (function compare() {
+    const s = HEROES.find((x) => x.id === 'sasha');
+    if (!s || !data.compare) return;
+    document.getElementById('accuracy').hidden = false;
+    document.getElementById('cmp-lagna').textContent = `${s.lagna.sign} ${s.lagna.degree}`;
+    document.getElementById('cmp-moon').textContent = `${s.soul.nakshatra}, ${s.soul.pada}-я пада`;
+    document.getElementById('cmp-dasha').textContent = s.time.md && s.time.ad ? `${s.time.md.lordName} → ${s.time.ad.lordName}` : '—';
+  })();
+  chrome();
+  render(location.hash.slice(1) || HEROES[0].id);
+  sky();
+}
+(async () => {
+  const id = location.hash.slice(1).replace(/[^0-9a-f]/gi, '');
+  const card = document.getElementById('card');
+  if (!id) { card.innerHTML = '<p class="lead">Откройте ссылку на героя — её присылает тот, кто посчитал героя в программе «Джйотиш».</p>'; return; }
+  card.innerHTML = '<p class="lead">Герой загружается…</p>';
+  try {
+    const r = await fetch('https://api.github.com/gists/' + id);
+    if (!r.ok) throw new Error('gist ' + r.status);
+    const g = await r.json();
+    const f = g.files['hero.json'];
+    const text = f.truncated ? await (await fetch(f.raw_url)).text() : f.content;
+    start(JSON.parse(text));
+  } catch (e) {
+    card.innerHTML = '<p class="lead">Герой не найден. Проверьте ссылку или откройте её позже: GitHub отвечает не на все запросы подряд.</p>';
+  }
+})();
+</script>
+</body></html>
