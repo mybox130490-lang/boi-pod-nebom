@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><title>Герой по рождению</title><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head>
 <body><title>Герой по рождению</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -83,12 +83,15 @@ button { font: inherit; }
 .hc-vitals b { display: block; font: 500 26px/1.1 var(--mono); }
 .hc-vitals span { font: 500 10.5px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: rgba(239, 232, 214, .55); }
 .hc-vitals .hp b { color: #ff8585; } .hc-vitals .mp b { color: #93cbff; }
-.hc-stats { position: relative; display: grid; gap: 6px; margin-bottom: 14px; }
-.hc-stat { display: grid; grid-template-columns: 86px 1fr 30px; gap: 8px; align-items: center; font-size: 13.5px; }
+.hc-stats { --lw: 152px; position: relative; display: grid; gap: 6px; margin-bottom: 14px; }
+.hc-stat { all: unset; box-sizing: border-box; display: grid; grid-template-columns: var(--lw) minmax(0, 1fr) 30px; gap: 8px; align-items: center;
+  font-size: 13.5px; cursor: pointer; border-radius: 6px; }
+.hc-stat:hover .t { background: rgba(255, 255, 255, .16); }
+.hc-stat:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
 .hc-stat .t { height: 8px; border-radius: 5px; background: rgba(255, 255, 255, .09); overflow: hidden; }
 .hc-stat .t i { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--c2), var(--c1)); }
 .hc-stat b { text-align: right; font: 500 13.5px var(--mono); }
-.hc-stats .norm { position: absolute; top: -3px; bottom: -3px; left: calc(94px + (100% - 140px) * .5); border-left: 1px dashed rgba(239, 232, 214, .35); }
+.hc-stats .norm { position: absolute; top: -3px; bottom: -3px; left: calc(var(--lw) + 8px + (100% - var(--lw) - 46px) * .5); border-left: 1px dashed rgba(239, 232, 214, .35); pointer-events: none; }
 .hc-ult { border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; border: 1px solid color-mix(in srgb, var(--aura) 60%, transparent);
   background: linear-gradient(120deg, color-mix(in srgb, var(--aura) 33%, transparent), rgba(255, 255, 255, .03)); }
 .hc-ult b { display: block; font-family: var(--display); font-size: 22px; font-weight: 400; }
@@ -194,6 +197,22 @@ details.proof summary { cursor: pointer; color: var(--saffron); font-weight: 600
 .signs div { background: var(--ink-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 13px; }
 .signs div span { display: block; color: var(--dim); font: 400 11px var(--mono); }
 footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
+.hint { margin: 16px 0 0; font-size: 14px; color: var(--dim); }
+.plain { margin: 0; display: grid; gap: 12px; }
+.plain div { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 16px; border-top: 1px solid var(--line); padding-top: 12px; }
+.plain dt { font: 500 12px/1.9 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--saffron); }
+.plain dd { margin: 0; font-size: 16.5px; }
+.stats { display: grid; gap: 8px; }
+.statrow { all: unset; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 200px) minmax(0, 1fr) 40px; gap: 6px 14px; align-items: center;
+  padding: 10px 14px; border-radius: 12px; background: var(--ink-2); border: 1px solid var(--line); cursor: pointer; }
+.statrow:hover { border-color: var(--line-2); }
+.statrow:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
+.statrow .nm { font-weight: 600; }
+.statrow .t { position: relative; height: 8px; border-radius: 5px; background: rgba(255, 255, 255, .09); }
+.statrow .t i { display: block; height: 100%; max-width: 100%; border-radius: 5px; background: var(--saffron); }
+.statrow .t em { position: absolute; left: 50%; top: -4px; bottom: -4px; border-left: 1px dashed rgba(239, 232, 214, .4); }
+.statrow b { font: 500 17px var(--mono); text-align: right; }
+.statrow .lf { grid-column: 1 / -1; color: var(--dim); font-size: 14px; }
 
 @media (max-width: 960px) {
   .intro .wrap { grid-template-columns: minmax(0, 1fr); gap: 32px; padding-block: 36px 44px; }
@@ -207,6 +226,8 @@ footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
   .periods li { grid-template-columns: minmax(0, 1fr) auto; }
   .periods li small { grid-column: 1 / -1; }
   .rules li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .plain div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .statrow { grid-template-columns: minmax(0, 1fr) 70px 34px; padding: 10px 12px; }
   .switch { margin-left: 0; }
   .hc-class { font-size: 28px; }
   .ult-big h3 { font-size: 32px; }
@@ -236,6 +257,8 @@ footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
         <li><b>Правила</b>знак, дом, сила, накшатра</li>
         <li><b>Герой</b>бой, умения, облик, судьба</li>
       </ol>
+      <p class="hint">Слова джйотиша подчёркнуты пунктиром — нажмите, и появится пояснение простыми словами.
+        Строка характеристики на карточке тоже нажимается.</p>
       <div class="born" id="born"></div>
     </div>
     <div id="card"></div>
@@ -269,6 +292,12 @@ footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
     </div>
 
     <div class="sec">
+      <header><div class="eyebrow">Словарик</div><h2>Слова джйотиша</h2>
+        <p>Всё, что подчёркнуто на странице пунктиром, — здесь целиком.</p></header>
+      <div id="gloss"></div>
+    </div>
+
+    <div class="sec">
       <header><div class="eyebrow">Правила</div><h2>Что из чего считается</h2>
         <p>Числа даёт движок. Соответствия — первая версия, их можно менять.</p></header>
       <div>
@@ -294,7 +323,219 @@ footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
 <footer class="foot"><div class="wrap" id="foot"></div></footer>
 
 <script>
-let HEROES = [], RULES = null;
+// «Простыми словами» — общий кусок страниц «Герой по рождению» и «Бой под небом» (12.11.2026, по отзывам друзей Саши:
+// «не сильно замудрённым языком или с понятной расшифровкой терминологии»). Вставляется в оба шаблона на место метки (page-kit.ts).
+// Здесь: словарик джйотиша и игры, планета каждой характеристики, сферы домов, смысл периодов и атмакараки,
+// всплывающее пояснение по нажатию на термин. Только слова — числа приходят из движка.
+const Plain = (() => {
+  const GLYPH = { su: '☉', mo: '☽', ma: '♂', me: '☿', ju: '♃', ve: '♀', sa: '♄', ra: '☊', ke: '☋' };
+  const RU = { su: 'Солнце', mo: 'Луна', ma: 'Марс', me: 'Меркурий', ju: 'Юпитер', ve: 'Венера', sa: 'Сатурн', ra: 'Раху', ke: 'Кету' };
+  /** Родительный падеж: «период Меркурия». */
+  const GEN = { su: 'Солнца', mo: 'Луны', ma: 'Марса', me: 'Меркурия', ju: 'Юпитера', ve: 'Венеры', sa: 'Сатурна', ra: 'Раху', ke: 'Кету' };
+  /** Двенадцать домов — сферы жизни, отсчёт от лагны. */
+  const HOUSES = ['я сам', 'деньги и семья', 'смелость и братья', 'дом и мама', 'дети и творчество', 'враги и болезни',
+    'партнёр', 'тайны и перемены', 'удача и учитель', 'дело и статус', 'доходы и друзья', 'уход, сон, дальние земли'];
+
+  /** Характеристика героя ← планета: за что она в жизни и какие боевые числа даёт (названия — как в combat.numbers).
+   *  life читается и после «отвечает за …», и в начале фразы — поэтому слова, у которых эти формы совпадают. */
+  const STAT = {
+    ma: { life: 'напор, смелость, спорт, умение постоять за себя', battle: ['Обычный удар', 'Сильный удар'] },
+    me: { life: 'ум, речь, сообразительность, ловкость рук', battle: ['Шанс крита', 'Скорость бега', 'Рывок'] },
+    sa: { life: 'терпение, выносливость, порядок, долгий труд', battle: ['Броня'] },
+    su: { life: 'характер, гордость, умение вести за собой', battle: ['Сопротивление контролю'] },
+    ju: { life: 'мудрость, знание, учительство, везение', battle: ['Сила магии и лечения'] },
+    ve: { life: 'любовь, вкус, чувство прекрасного, умение договориться', battle: ['Скидка у торговцев'] },
+    mo: { life: 'чувства, настроение, тепло, внутренний запас сил', battle: ['Заряд ульты'] },
+  };
+
+  /** Атмакарака — главный урок души по традиции. */
+  const LESSON = {
+    su: 'урок света и гордости: вести за собой, не ставя себя выше других',
+    mo: 'урок чувств и заботы: беречь других и не раствориться в них',
+    ma: 'урок силы: драться за своё, но не воевать со всеми подряд',
+    me: 'урок ума и слова: говорить правду, а не только ловко',
+    ju: 'урок мудрости: учить и верить, не поучая свысока',
+    ve: 'урок любви и удовольствий: любить, не попадая в зависимость',
+    sa: 'урок терпения: принять труд и ограничения и не озлобиться',
+    ra: 'урок желаний: хотеть нового, не гоняясь за миражами',
+    ke: 'урок отпускания: отпускать без страха потерять себя',
+  };
+
+  /** Что выходит на первый план в период планеты — общие значения джйотиша. */
+  const THEME = {
+    su: 'признание, начальство, отец, своё «я»',
+    mo: 'чувства, дом, мама, забота',
+    ma: 'действие, спор, спорт, стройка, напор',
+    me: 'учёба, торговля, переговоры, тексты',
+    ju: 'рост, учитель, дети, удача, вера',
+    ve: 'любовь, красота, комфорт, искусство, деньги',
+    sa: 'труд, дисциплина, долгие дела, проверка на прочность',
+    ra: 'новое, чужое, амбиции, резкие перемены',
+    ke: 'отпускание старого, уединение, поиск смысла',
+  };
+
+  /** Словарик: ключ → [слово, коротко, объяснение]. */
+  const TERMS = {
+    graha: ['Граха', 'планета', 'Так в джйотише называют планеты. Их девять: Солнце, Луна, Марс, Меркурий, Юпитер, Венера, Сатурн и две теневые точки — Раху и Кету. От каждой у героя своя характеристика и своё умение.'],
+    lagna: ['Лагна', 'восходящий знак', 'Знак зодиака, который поднимался над горизонтом на востоке в минуту и в месте рождения. Он сменяется примерно каждые два часа — поэтому так важно точное время. Лагна — это «я сам»: тело, характер, манера действовать. У героя от неё класс, стихия и облик.'],
+    lord: ['Управитель лагны', 'хозяин восходящего знака', 'У каждого знака есть планета-хозяин: у Овна и Скорпиона — Марс, у Тельца и Весов — Венера, у Близнецов и Девы — Меркурий, у Рака — Луна, у Льва — Солнце, у Стрельца и Рыб — Юпитер, у Козерога и Водолея — Сатурн. В какой дом встал хозяин лагны — туда и тянет жизнь. У героя это путь, а сила хозяина — запас здоровья.'],
+    house: ['Дом', 'сфера жизни', 'Карта делится на 12 домов — 12 сфер жизни, отсчёт от лагны: 1 — я сам, 2 — деньги и семья, 3 — смелость и братья, 4 — дом и мама, 5 — дети и творчество, 6 — враги и болезни, 7 — партнёр, 8 — тайны и перемены, 9 — удача и учитель, 10 — дело и статус, 11 — доходы и друзья, 12 — уход, сон, дальние земли. Планета действует в сфере своего дома.'],
+    ayanamsa: ['Аянамша', 'поправка зодиака', 'Разница между западным зодиаком (по временам года) и ведическим (по звёздам) — сейчас около 24°. Из-за неё по джйотишу планеты часто стоят в соседнем знаке, не в том, что в привычном гороскопе.'],
+    nakshatra: ['Накшатра', 'лунная стоянка', 'Кроме 12 знаков, небо в джйотише делят на 27 накшатр — по 13°20′. Луна проходит одну накшатру примерно за сутки. У каждой свой символ и божество. Накшатра Луны — самое личное в карте: чувства, душа. У героя от неё пассивное умение — «душа».'],
+    pada: ['Пада', 'четверть накшатры', 'Каждая накшатра делится на четыре пады по 3°20′. Пада уточняет оттенок накшатры.'],
+    shadbala: ['Шад-бала', 'сила планеты', '«Шестерная сила» — классический расчёт того, насколько сильна планета в карте: по знаку, направлению, времени суток и года, движению, природе и взглядам других планет. У каждой планеты своя норма. У героя 50 — ровно норма, 75 — в полтора раза сильнее нормы, 25 — вдвое слабее.'],
+    rupa: ['Рупа', 'единица силы', 'Единица, в которой считают шад-балу. Норма у планет разная: у Солнца и Марса 5 рупа, у Сатурна 5, у Венеры 5,5, у Луны 6, у Юпитера 6,5, у Меркурия 7.'],
+    ak: ['Атмакарака', 'планета души', 'Планета, которая ушла дальше всех внутри своего знака — у неё самый большой градус. По традиции она показывает главный урок души в этой жизни. У героя её умение — ульта, самый сильный удар.'],
+    varga: ['Варготтама', 'двойные звёзды ✦✦', 'Планета стоит в одном и том же знаке и в основной карте, и в навамше. Такая планета действует уверенно, «вдвойне». У героя её умения помечены ✦✦.'],
+    navamsha: ['Навамша', 'карта девятых долей', 'Дополнительная карта: каждый знак делится на девять частей, и планета попадает в «знак» своей доли. Показывает глубину и зрелость планет, а ещё брак.'],
+    exalt: ['Экзальтация', 'планета на троне', 'Знак, где планета сильнее всего: Солнце в Овне, Луна в Тельце, Марс в Козероге, Меркурий в Деве, Юпитер в Раке, Венера в Рыбах, Сатурн в Весах. В бою — +10 %.'],
+    debil: ['Падение', 'планета не на своём месте', 'Знак напротив экзальтации: там планета слабеет, она «не в своей тарелке». Например, Солнце в Весах, Луна в Скорпионе. У героя это слабость: в одном случае из пяти приём на этой планете срывается. На небе дня — −10 % обоим бойцам.'],
+    combust: ['Сожжение', 'планета в лучах Солнца', 'Планета так близко к Солнцу, что теряется в его свете. У героя её умение лучше работает в одиночку, на небе дня — −15 %.'],
+    war: ['Война планет', 'две планеты ближе 1°', 'Когда две планеты (кроме Солнца и Луны) сходятся ближе чем на градус, они «спорят», и проигравшая слабеет.'],
+    retro: ['Ретроградность', 'планета «пятится» ℞', 'С Земли кажется, что планета идёт по небу назад. По традиции такая планета действует необычно и возвращает к старым делам.'],
+    nodes: ['Раху и Кету', 'теневые планеты', 'Не небесные тела, а две точки, где путь Луны пересекает путь Солнца, — там бывают затмения. Раху — жажда, иллюзии, всё новое; Кету — отрешённость и прозрение. Своей силы у них нет: они берут силу хозяина знака, где стоят.'],
+    dasha: ['Даша', 'период планеты', 'По Вимшоттари-даше жизнь делится на периоды девяти планет — всего 120 лет: Кету 7 лет, Венера 20, Солнце 6, Луна 10, Марс 7, Раху 18, Юпитер 16, Сатурн 19, Меркурий 17. С какой начать и сколько уже прошло, решает Луна при рождении. Планета периода «ведёт» эти годы.'],
+    md: ['Махадаша', 'большой период', 'Большой период одной планеты — от 6 до 20 лет. В бою: окно силы — +20 % к характеристике этой планеты, испытание — −20 %.'],
+    ad: ['Антардаша', 'подпериод', 'Период внутри махадаши — от нескольких месяцев до трёх лет; все девять планет идут по очереди. В бою: ±10 %.'],
+    func: ['Функциональная природа', 'друг или недруг этой лагны', 'Для каждого восходящего знака одни планеты помогают, другие мешают — смотря какими домами они управляют. Это не «плохая планета вообще», а неудобная именно для этой лагны. Поэтому один и тот же период у одного человека — окно силы, у другого — испытание.'],
+    yk: ['Йогакарака', 'лучшая планета для лагны', 'Планета, которая для этой лагны управляет сразу двумя лучшими домами. Её период — окно силы.'],
+    gochara: ['Гочара', 'транзит', 'Где планеты стоят сейчас — относительно карты рождения. В джйотише транзиты считают от Луны: например, Юпитер в 11-м доме от Луны — к удаче. В бою: благой дом +10 %, остальные −5 %.'],
+    sadesati: ['Саде-Сати', 'семь с половиной лет Сатурна', 'Время, пока Сатурн проходит знак перед Луной рождения, саму Луну и знак после неё, — около 7,5 лет. Нагрузка, ответственность, взросление. У героя это «личный рейд-босс»; в бою −15 % к Стойкости и Духу.'],
+    tara: ['Тара', 'звезда дня', 'Сравнивают накшатру, где Луна сегодня, с накшатрой Луны при рождении. Выходит одна из девяти «звёзд дня»: одни удачные, другие нет. В бою — прибавка или потеря шанса крита.'],
+    kinds: ['Виды умений', 'по дому планеты', 'Кендры (1, 4, 7, 10-й дома) — опора: умение активное, по кнопке. Коны (5, 9-й) — дома удачи: благословение срабатывает само. Упачаи (3, 6, 11-й) — растущие: умение крепнет со временем. 2-й дом — запас: долго копится. 8-й и 12-й — скрытые: просыпаются, когда герою совсем плохо.'],
+    kuta: ['Ашта-кута', 'совместимость пары', 'Классическая проверка совместимости по Лунам двух людей: восемь пунктов, всего 36 баллов. 18 и больше считается хорошим союзом.'],
+    ult: ['Ульта', 'главный удар', 'Самое сильное умение героя («ультимейт»). Заряжается по ходу боя; чем выше Дух (Луна), тем быстрее.'],
+    crit: ['Крит', 'критический удар', 'Удар сильнее обычного. Шанс зависит от Ловкости (Меркурий) и от сегодняшней тары.'],
+    buff: ['Бафы и дебафы', 'усиления и ослабления', 'Временные прибавки и потери к силе. Здесь их даёт небо: даши, транзиты, тара, Саде-Сати, планеты в падении и экзальтации.'],
+  };
+
+  /** Слова в тексте → термин. Порядок важен: длинное раньше короткого. Своих скобок-групп в шаблонах нет. */
+  const PAT = [
+    ['lord', 'управител[а-яё]* лагны'],
+    ['lagna', 'лагн[а-яё]*'],
+    ['nakshatra', 'накшатр[а-яё]*'],
+    ['pada', 'пад[аыу]'],
+    ['shadbala', 'шад-бал[а-яё]*'],
+    ['rupa', 'руп[аы]'],
+    ['ak', 'атмакарак[а-яё]*'],
+    ['varga', 'варготтам[а-яё]*'],
+    ['varga', 'двойн[а-яё]* звёзд[а-яё]*'],
+    ['navamsha', 'навамш[а-яё]*'],
+    ['exalt', 'экзальтаци[а-яё]*'],
+    ['debil', 'падени[а-яё]*'],
+    ['combust', 'сожж[её]н[а-яё]*'],
+    ['war', 'войн[а-яё]* планет'],
+    ['retro', 'ретроград[а-яё]*'],
+    ['nodes', 'Раху|Кету'],
+    ['md', 'махадаш[а-яё]*'],
+    ['ad', 'антардаш[а-яё]*'],
+    ['dasha', 'Вимшоттари(?:-даш[а-яё]*)?'],
+    ['dasha', 'даш[аиеуы]'],
+    ['func', 'функционально (?:злая|благая)'],
+    ['yk', 'йогакарак[а-яё]*'],
+    ['gochara', 'гочар[а-яё]*'],
+    ['gochara', 'транзит[а-яё]*'],
+    ['sadesati', 'Саде-Сати'],
+    ['tara', 'тар[аыеу]'],
+    ['kinds', 'кендр[а-яё]*|кон[аы]|упача[а-яё]*|дустхан[а-яё]*'],
+    ['kuta', 'ашта-кут[а-яё]*'],
+    ['ult', 'ульт[аыеу]'],
+    ['crit', 'крит(?:а|ов|ы)?'],
+    ['buff', 'баф[а-яё]*|дебаф[а-яё]*'],
+    ['ayanamsa', 'аянамш[а-яё]*'],
+    ['graha', 'грах[аиуеы]?'],
+    ['house', '\\d+-(?:м|й|го) дом[а-яё]*'],
+  ];
+  const RX = new RegExp('(^|[^а-яёa-z0-9-])(?:' + PAT.map(([, p]) => '(' + p + ')').join('|') + ')(?![а-яёa-z])', 'giu');
+  let seen = new Set();
+
+  /** Начать новый раздел: в каждом разделе термин подсвечивается один раз — первое упоминание. */
+  function fresh() { seen = new Set(); }
+
+  /** Уже экранированный текст → тот же текст, где термины стали кнопками с пояснением. */
+  function terms(html) {
+    return String(html).replace(RX, (m, pre, ...g) => {
+      const i = g.findIndex((x, j) => j < PAT.length && x !== undefined);
+      const key = PAT[i][0], word = g[i];
+      if (seen.has(key)) return m;
+      seen.add(key);
+      return `${pre}<button type="button" class="term" data-term="${key}">${word}</button>`;
+    });
+  }
+
+  /** Кнопка-термин руками: term('gochara', 'Гочара'). */
+  const term = (key, text) => `<button type="button" class="term" data-term="${key}">${text}</button>`;
+
+  /** «Ловкость» + «☿ Меркурий» — характеристика вместе со своей планетой. */
+  const statLabel = (name, g) => `${name} <small class="pl">${GLYPH[g]} ${RU[g]}</small>`;
+
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  let box = null, back = null;
+  /** Всплывающее пояснение снизу экрана: заголовок, подзаголовок, текст (готовый HTML). */
+  function pop(title, sub, html) {
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'pop'; box.setAttribute('role', 'dialog'); box.hidden = true;
+      document.body.appendChild(box);
+      box.addEventListener('click', (e) => { if (e.target.closest('.pop-x')) close(); });
+    }
+    back = document.activeElement;
+    box.setAttribute('aria-label', title.replace(/<[^>]+>/g, ''));
+    box.innerHTML = `<button type="button" class="pop-x" aria-label="Закрыть">×</button>${sub ? `<div class="pop-s">${sub}</div>` : ''}<h4>${title}</h4><div class="pop-t">${html}</div>`;
+    box.hidden = false;
+    box.querySelector('.pop-x').focus({ preventScroll: true });
+  }
+  function close() {
+    if (!box || box.hidden) return;
+    box.hidden = true;
+    if (back && back.focus) back.focus({ preventScroll: true });
+  }
+  function show(key) {
+    const t = TERMS[key];
+    if (t) pop(esc(t[0]), esc(t[1]), `<p>${esc(t[2])}</p>`);
+  }
+
+  /** Словарик целиком — для раздела в конце страницы. */
+  function glossary() {
+    return `<dl class="gloss">${Object.keys(TERMS).map((k) => `<div><dt>${esc(TERMS[k][0])} <span>${esc(TERMS[k][1])}</span></dt><dd>${esc(TERMS[k][2])}</dd></div>`).join('')}</dl>`;
+  }
+
+  const css = document.createElement('style');
+  css.textContent = `
+.term { all: unset; cursor: help; border-bottom: 1px dotted currentColor; }
+.term:hover { color: var(--saffron); border-bottom-color: var(--saffron); }
+.term:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; border-radius: 2px; }
+small.pl { font: 400 11.5px var(--mono); color: rgba(239, 232, 214, .55); white-space: nowrap; }
+.pop { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
+  width: min(540px, calc(100% - 32px)); max-height: 70vh; overflow: auto; background: #1c2347; color: var(--parchment);
+  border: 1px solid rgba(239, 232, 214, .3); border-radius: 16px; padding: 14px 44px 16px 18px; box-shadow: 0 24px 70px -12px rgba(0, 0, 0, .8); }
+.pop h4 { margin: 2px 0 0; font: 400 26px/1.1 var(--display); }
+.pop-s { font: 500 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--saffron); }
+.pop-t p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; }
+.pop-t table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+.pop-t td { padding: 5px 8px 5px 0; border-top: 1px solid rgba(239, 232, 214, .12); vertical-align: top; }
+.pop-t td:last-child { text-align: right; font: 500 14px var(--mono); color: var(--saffron); white-space: nowrap; }
+.pop-x { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(239, 232, 214, .25);
+  background: transparent; color: var(--parchment); font-size: 20px; line-height: 1; cursor: pointer; }
+.gloss { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; }
+.gloss div { border-top: 1px solid var(--line); padding-top: 8px; }
+.gloss dt { font-weight: 600; } .gloss dt span { font-weight: 400; color: var(--saffron); font-size: 13.5px; }
+.gloss dd { margin: 2px 0 0; color: var(--dim); font-size: 14.5px; }
+@media (max-width: 640px) { .gloss { grid-template-columns: minmax(0, 1fr); } }`;
+  document.head.appendChild(css);
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('.term');
+    if (t) { e.preventDefault(); show(t.dataset.term); return; }
+    if (box && !box.hidden && !e.target.closest('.pop') && !e.target.closest('[data-pop]')) close();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  return { GLYPH, RU, GEN, HOUSES, STAT, LESSON, THEME, TERMS, fresh, terms, term, statLabel, pop, show, close, glossary, esc };
+})();
+
+let HEROES = [], RULES = null, CUR = null;
 const GLYPH = { su: '☉', mo: '☽', ma: '♂', me: '☿', ju: '♃', ve: '♀', sa: '♄', ra: '☊', ke: '☋' };
 const RU = { su: 'Солнце', mo: 'Луна', ma: 'Марс', me: 'Меркурий', ju: 'Юпитер', ve: 'Венера', sa: 'Сатурн', ra: 'Раху', ke: 'Кету' };
 const KIND_VAR = { active: '--k-active', blessing: '--k-blessing', growing: '--k-growing', reserve: '--k-reserve', hidden: '--k-hidden' };
@@ -321,11 +562,12 @@ function emblem(h) {
 }
 
 function card(h) {
-  const stats = h.stats.map((s) => `<div class="hc-stat" title="${esc(s.hint)}"><span>${esc(s.name)}</span>` +
-    `<span class="t"><i style="width:${s.value}%"></i></span><b>${s.value}</b></div>`).join('');
+  Plain.fresh();
+  const stats = h.stats.map((s) => `<button type="button" class="hc-stat" data-pop data-stat="${s.graha}" aria-label="${esc(s.name)}, ${Plain.RU[s.graha]}: ${s.value} — подробнее">` +
+    `<span>${Plain.statLabel(esc(s.name), s.graha)}</span><span class="t"><i style="width:${s.value}%"></i></span><b>${s.value}</b></button>`).join('');
   const skills = h.skills.map((s) => `<div class="hc-skill" style="${kvar(s.kind)}"><b>${esc(s.name)}${s.double ? ' <i class="dbl">✦✦</i>' : ''}</b>` +
     `<span>${esc(s.kindLabel)} · ${s.power}</span></div>`).join('');
-  const weak = h.weaknesses.length ? h.weaknesses.map((w) => `<li>⚠ <b>${esc(w.title)}</b> — ${esc(w.effect)}</li>`).join('')
+  const weak = h.weaknesses.length ? h.weaknesses.map((w) => `<li>⚠ <b>${Plain.terms(esc(w.title))}</b> — ${esc(w.effect)}</li>`).join('')
     : '<li>Слабых мест по падению, сожжению и войне планет нет</li>';
   return `<article class="hcard" style="${vars(h)}"><div class="hcard-in">
     <header class="hc-head"><div class="hc-emblem">${emblem(h)}</div>
@@ -334,11 +576,11 @@ function card(h) {
     <p class="hc-about">${esc(cap(h.classAbout))}; ${esc(h.pathAbout)}</p>
     <div class="hc-vitals"><div class="v hp"><b>${h.hp}</b><span>Здоровье</span></div><div class="v mp"><b>${h.mana}</b><span>Дух</span></div></div>
     <div class="hc-stats">${stats}<div class="norm" title="50 — норма"></div></div>
-    <div class="hc-ult"><span class="lbl">Ульта · атмакарака — ${esc(RU[h.ultimate.graha])}</span>
+    <div class="hc-ult"><span class="lbl">Ульта · ${Plain.term('ak', 'атмакарака')} — ${esc(RU[h.ultimate.graha])}</span>
       <b>${esc(h.ultimate.name)}${h.ultimate.double ? ' <i class="dbl">✦✦</i>' : ''}</b><span>${esc(h.ultimate.does)} · сила ${h.ultimate.power}</span></div>
     <div class="hc-skills">${skills}</div>
-    <div class="hc-soul"><span class="lbl">Душа · ${esc(h.soul.nakshatra)}</span><b>${esc(h.soul.passive)}</b> — ${esc(h.soul.effect)}</div>
-    ${h.doubleStars.length ? `<div class="hc-stars">✦✦ Рождён под двойными звёздами: ${h.doubleStars.map((g) => RU[g]).join(' · ')}</div>` : ''}
+    <div class="hc-soul"><span class="lbl">Душа · ${Plain.term('nakshatra', esc(h.soul.nakshatra))}</span><b>${esc(h.soul.passive)}</b> — ${esc(h.soul.effect)}</div>
+    ${h.doubleStars.length ? `<div class="hc-stars">✦✦ ${Plain.term('varga', 'Двойные звёзды')}: ${h.doubleStars.map((g) => RU[g]).join(' · ')}</div>` : ''}
     <ul class="hc-weak">${weak}</ul>
     <footer class="hc-foot">${esc(h.lagna.sign)} ${esc(h.lagna.degree)} · ${esc(h.lagna.nakshatra)} ${h.lagna.pada}</footer>
   </div></article>`;
@@ -373,7 +615,62 @@ function timeline(h) {
 
 function periodRow(p, now) {
   return `<li class="${now ? 'now' : ''}"><span class="when">${esc(p.start)} — ${esc(p.end)}</span><b>${GLYPH[p.lord]} ${esc(p.lordName)}</b>` +
-    `<em class="k-${p.kind}">${PERIOD[p.kind]}</em><small class="muted">${esc(p.why)}</small></li>`;
+    `<em class="k-${p.kind}">${PERIOD[p.kind]}</em><small class="muted">${Plain.terms(esc(p.why))}</small></li>`;
+}
+
+const x2 = (r) => r.toFixed(2).replace('.', ',');
+const battleNums = (h, g) => Plain.STAT[g].battle.map((n) => h.combat.numbers.find((y) => y.name === n)).filter(Boolean);
+
+/** Всплывающее пояснение к характеристике: что значит, откуда число, что даёт в бою. */
+function statPop(h, g) {
+  const s = h.stats.find((y) => y.graha === g);
+  if (!s) return;
+  const P = Plain;
+  P.fresh();
+  const vs = s.value > 50 ? 'выше нормы' : s.value < 50 ? 'ниже нормы' : 'ровно норма';
+  const nums = battleNums(h, g);
+  P.pop(`${esc(s.name)} <small class="pl">${P.GLYPH[g]} ${P.RU[g]}</small>`, `${s.value} · ${vs}`,
+    `<p>${esc(cap(s.hint))}. В жизни ${P.RU[g]} отвечает за ${P.STAT[g].life}.</p>` +
+    `<p>${P.terms(esc(`Откуда ${s.value}: шад-бала ${P.GEN[g]} — ${x2(s.rupa)} рупы при норме ${x2(s.required)}, то есть ×${x2(s.ratio)} нормы; ровно норма дала бы 50. Место ${s.rank} из 7 по силе.`))}</p>` +
+    (nums.length ? `<table>${nums.map((n) => `<tr><td>${esc(n.name)}<br><span class="muted" style="font-size:12.5px">${esc(n.why)}</span></td><td>${esc(n.value)}</td></tr>`).join('')}</table>` : ''));
+}
+
+/** «Кто этот герой» — карта без терминов наизусть: характер, путь, сильное, слабое, душа, урок, сейчас. */
+function portrait(h) {
+  const P = Plain;
+  P.fresh();
+  const by = [...h.stats].sort((a, b) => b.value - a.value);
+  const top = by[0], second = by[1], low = by[by.length - 1];
+  const lord = /управитель лагны (\S+) в (\d+)-м доме/.exec((h.proof.find((p) => p.what === 'Путь') || {}).why || '');
+  const u = h.ultimate, t = h.time;
+  const kindWord = (p) => (p.kind === 'power' ? 'окно силы' : p.kind === 'trial' ? 'испытание' : 'ровный период');
+  const rows = [
+    ['Характер', `${h.className} — ${h.classAbout}. Так вышло, потому что в минуту рождения на востоке поднимался знак ${h.lagna.sign} — это лагна, «я сам» в карте. Стихия знака — ${h.elementName.toLowerCase()}: отсюда цвета героя и манера боя.`],
+    ['Путь', `«${h.path}» — ${h.pathAbout}.` + (lord ? ` Управитель лагны, ${lord[1]}, стоит в ${lord[2]}-м доме, в сфере «${P.HOUSES[lord[2] - 1]}»: туда и тянет жизнь героя.` : '')],
+    ['Сильнее всего', `${top.name} (${P.RU[top.graha]}) — ${top.value}, это ×${x2(top.ratio)} нормы. В жизни ${P.RU[top.graha]} отвечает за ${P.STAT[top.graha].life}. Следом — ${second.name} (${P.RU[second.graha]}): ${second.value}.`],
+    ['Где тоньше', `${low.name} (${P.RU[low.graha]}) — ${low.value}${low.value < 50 ? ', ниже нормы' : ''}. ${cap(P.STAT[low.graha].life)} — то, над чем герою приходится работать.`],
+    ['Душа', `Луна — чувства и душа — стоит в накшатре ${h.soul.nakshatra} (символ — ${h.soul.symbol}, божество — ${h.soul.deity}). Отсюда пассивное умение «${h.soul.passive}»: ${h.soul.effect}.`],
+    ['Главный урок', `Планета души, атмакарака, — ${P.RU[u.graha]}. По традиции это ${P.LESSON[u.graha]}. Её умение «${u.name}» стало ультой — самым сильным ударом.`],
+  ];
+  if (h.doubleStars.length) rows.push(['Опора', `Двойные звёзды ✦✦ — ${h.doubleStars.map((g) => P.RU[g]).join(', ')}: эти планеты стоят в одном знаке и в основной карте, и в навамше — на них можно положиться.`]);
+  if (h.weaknesses.length) rows.push(['Уязвимость', h.weaknesses.map((w) => `${w.title}: ${w.effect}`).join('; ') + '.']);
+  if (t.md) rows.push(['Сейчас', `Идёт махадаша ${P.GEN[t.md.lord]} — большой период до ${t.md.end}; для этой карты это ${kindWord(t.md)}, на первом плане — ${P.THEME[t.md.lord]}.` +
+    (t.ad ? ` Внутри него — антардаша ${P.GEN[t.ad.lord]} до ${t.ad.end}: ${kindWord(t.ad)}.` : '') +
+    (t.sadeSati ? ` Саде-Сати: ${t.sadeSati}.` : '')]);
+  return `<dl class="plain">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${P.terms(esc(v))}</dd></div>`).join('')}</dl>`;
+}
+
+/** Семь характеристик подробно: планета, число, за что отвечает, что даёт в бою. */
+function statsList(h) {
+  const P = Plain;
+  P.fresh();
+  return `<div class="stats">${h.stats.map((s) => {
+    const nums = battleNums(h, s.graha);
+    return `<button type="button" class="statrow" data-pop data-stat="${s.graha}"><span class="nm">${P.statLabel(esc(s.name), s.graha)}</span>` +
+      `<span class="t"><i style="width:${s.value}%"></i><em></em></span><b>${s.value}</b>` +
+      `<span class="lf">${esc(cap(P.STAT[s.graha].life))}${nums.length ? ` · в бою: ${nums.map((n) => `${esc(n.name.toLowerCase())} ${esc(n.value)}`).join(', ')}` : ''}</span></button>`;
+  }).join('')}</div>
+  <p class="muted" style="margin:14px 0 0">${P.terms(esc(`Здоровье ${h.hp} — от силы управителя лагны, Дух ${h.mana} — от силы Луны: 1000 × во сколько раз планета сильнее нормы.`))}</p>`;
 }
 
 function sec(eyebrow, title, note, body) {
@@ -382,8 +679,11 @@ function sec(eyebrow, title, note, body) {
 
 function passport(h) {
   const c = h.combat;
+  const plainSec = portrait(h);
+  const statsSec = statsList(h);
   const glyphs = ['↑', '⌂', GLYPH[h.look.aura.graha], GLYPH[h.ultimate.graha], '☽'];
-  const story = `<ul class="story">${h.story.map((s, i) => `<li><span>${glyphs[i]}</span><div>${esc(s)}</div></li>`).join('')}</ul>`;
+  Plain.fresh();
+  const story = `<ul class="story">${h.story.map((s, i) => `<li><span>${glyphs[i]}</span><div>${Plain.terms(esc(s))}</div></li>`).join('')}</ul>`;
   const fight = `<p class="stance">${esc(c.stance)}</p>
     <p class="muted">Бой ${esc(c.range)} · оружие — ${esc(c.weapon)}</p>
     <div class="tiles" style="margin-top:16px">
@@ -397,28 +697,33 @@ function passport(h) {
     <div class="tablewrap"><table class="num"><tbody>${c.numbers.map((n) =>
       `<tr><td>${esc(n.name)}</td><td>${esc(n.value)}</td><td>${esc(n.why)}</td></tr>`).join('')}</tbody></table></div>`;
   const u = h.ultimate;
-  const ult = `<div class="ult-big" style="${vars(h)}"><div class="eyebrow">${GLYPH[u.graha]} Атмакарака — ${esc(RU[u.graha])}</div>
+  const ult = `<div class="ult-big" style="${vars(h)}"><div class="eyebrow">${GLYPH[u.graha]} ${Plain.term('ak', 'Атмакарака')} — ${esc(RU[u.graha])}</div>
     <h3>${esc(u.name)}${u.double ? ' <i class="dbl">✦✦</i>' : ''}</h3>
     <p class="scene">${esc(u.scene)}</p><p class="eff">${esc(cap(u.effectText))}</p>
+    <p>Планета души — ${esc(RU[u.graha])}: по традиции это ${esc(Plain.LESSON[u.graha])}.</p>
     <p class="muted">Заряжается ${esc(c.numbers.find((n) => n.name === 'Заряд ульты').value)} боя · стихия — ${esc(u.status.name)}: ${esc(u.status.effect)} · ${esc(u.why)}</p></div>`;
+  Plain.fresh();
+  const houseWord = (t) => t.replace(/(\d+)-й дом/, (m, n) => `${m} — ${Plain.HOUSES[n - 1]}`);
   const skills = `<div class="skills">${h.skills.map((s) => `<article class="skill" style="${kvar(s.kind)}">
       <div class="hd"><span class="gl">${GLYPH[s.graha]}</span><h3>${esc(s.name)}${s.double ? ' <i class="dbl">✦✦</i>' : ''}</h3></div>
       <div><span class="pill">${esc(s.kindLabel)}</span></div>
       <div class="bar"><span><i style="width:${s.power}%"></i></span><b>${s.power}</b></div>
       <p>${esc(s.battle)}</p>
       <p class="how">${esc(s.how)} Стихия — ${esc(s.status.name)}: ${esc(s.status.effect)}.</p>
-      <p class="why">${esc(RU[s.graha])}: ${esc(s.why.replace(RU[s.graha] + ' ', ''))}</p>
+      <p class="why">${Plain.terms(esc(RU[s.graha] + ': ' + houseWord(s.why.replace(RU[s.graha] + ' ', ''))))}</p>
     </article>`).join('')}</div>`;
+  Plain.fresh();
   const soul = `<div class="pair">
-      <div class="tile"><div class="eyebrow">Душа · ${esc(h.soul.nakshatra)}, пада ${h.soul.pada}</div>
+      <div class="tile"><div class="eyebrow">Душа · ${Plain.term('nakshatra', esc(h.soul.nakshatra))}, ${Plain.term('pada', 'пада')} ${h.soul.pada}</div>
         <p class="stance" style="margin-top:6px">${esc(h.soul.passive)}</p><p>${esc(cap(h.soul.effect))}.</p>
         <p class="muted">Символ — ${esc(h.soul.symbol)}, божество — ${esc(h.soul.deity)}</p></div>
-      <div class="tile"><div class="eyebrow">Двойные звёзды</div>
+      <div class="tile"><div class="eyebrow">${Plain.term('varga', 'Двойные звёзды')}</div>
         <p class="stance" style="margin-top:6px">${h.doubleStars.length ? h.doubleStars.map((g) => `${GLYPH[g]} ${RU[g]}`).join(' · ') : 'нет'}</p>
-        <p>${h.doubleStars.length ? 'Эти планеты стоят в одном знаке и в основной карте, и в навамше — их умения помечены ✦✦.' : 'Ни одна планета не стоит в одном знаке в раши и навамше.'}</p></div>
+        <p>${Plain.terms(h.doubleStars.length ? 'Эти планеты стоят в одном знаке и в основной карте, и в навамше — их умения помечены ✦✦.' : 'Ни одна планета не стоит в одном знаке в основной карте и в навамше.')}</p></div>
     </div>`;
-  const weak = h.weaknesses.length ? `<ul class="weak">${h.weaknesses.map((w) => `<li><b>${esc(w.title)}</b> — ${esc(w.effect)}.
-      <p>Как обыграть: ${esc(w.counter)}.</p><p class="mono" style="font-size:12px">${esc(w.why)}</p></li>`).join('')}</ul>`
+  Plain.fresh();
+  const weak = h.weaknesses.length ? `<ul class="weak">${h.weaknesses.map((w) => `<li><b>${Plain.terms(esc(w.title))}</b> — ${esc(w.effect)}.
+      <p>Как обыграть: ${esc(w.counter)}.</p><p class="mono" style="font-size:12px">${Plain.terms(esc(w.why))}</p></li>`).join('')}</ul>`
     : '<p>Слабых мест по падению, сожжению и войне планет у этого героя нет — редкость.</p>';
   const L = h.look;
   const look = `<div class="look"><p>${esc(cap(L.build))}.</p>${L.marks.map((m) => `<p>${esc(m)}.</p>`).join('')}
@@ -428,19 +733,24 @@ function passport(h) {
     <div class="prompt"><textarea id="prompt" readonly>${esc(L.prompt)}</textarea></div>
     <button class="btn" type="button" id="copy">Скопировать промпт</button></div>`;
   const t = h.time;
-  const fate = `${timeline(h)}
-    ${t.md ? `<p style="margin:14px 0 0">Махадаша <b>${GLYPH[t.md.lord]} ${esc(t.md.lordName)}</b> — до ${esc(t.md.end)}.</p>` : ''}
+  Plain.fresh();
+  const fate = `<p style="margin:0 0 14px">${Plain.terms('Жизнь по джйотишу идёт периодами планет — Вимшоттари-даша: 120 лет делятся между девятью планетами. Большой период длится от 6 до 20 лет, внутри него идут подпериоды по несколько месяцев. Один и тот же период одному — окно силы, другому — испытание: смотря чем планета управляет в этой карте.')}</p>
+    ${timeline(h)}
+    ${t.md ? `<p style="margin:14px 0 0">${Plain.term('md', 'Махадаша')} <b>${GLYPH[t.md.lord]} ${esc(t.md.lordName)}</b> — до ${esc(t.md.end)}. На первом плане — ${esc(Plain.THEME[t.md.lord])}.</p>` : ''}
     <ul class="periods">${[t.ad].filter(Boolean).map((p) => periodRow(p, true)).join('')}${t.windows.map((p) => periodRow(p, false)).join('')}</ul>
     ${t.effects.length ? `<p style="margin-top:14px">Сейчас: ${t.effects.map(esc).join('; ')}.</p>` : ''}
-    ${t.sadeSati ? `<div class="boss"><span class="eyebrow" style="color:#ff9f8a">Личный рейд-босс</span><br><b>Саде-Сати</b> — Сатурн над Луной, ${esc(t.sadeSati)}.
+    ${t.sadeSati ? `<div class="boss"><span class="eyebrow" style="color:#ff9f8a">Личный рейд-босс</span><br><b>${Plain.term('sadesati', 'Саде-Сати')}</b> — Сатурн над Луной, ${esc(t.sadeSati)}.
       Победишь — получишь награду Сатурна: стойкость и терпение.</div>` : ''}`;
+  Plain.fresh();
   const proof = `<details class="proof"><summary>Как рассчитано — каждое число</summary><div class="tablewrap" style="margin-top:10px"><table class="num"><tbody>${h.proof.map((r) =>
-    `<tr><td>${esc(r.what)}</td><td>${esc(r.value)}</td><td>${esc(r.why)}</td></tr>`).join('')}</tbody></table></div></details>`;
+    `<tr><td>${esc(r.what)}</td><td>${esc(r.value)}</td><td>${Plain.terms(esc(r.why))}</td></tr>`).join('')}</tbody></table></div></details>`;
   return [
+    sec('Простыми словами', 'Кто этот герой', 'Без астрологии наизусть: слово с пунктиром можно нажать — появится пояснение.', plainSec),
+    sec('Характеристики', 'Семь планет — семь сил', `Число — сила планеты по ${Plain.term('shadbala', 'шад-бале')}: 50 — ровно норма. Нажмите на строку — откуда число и что оно даёт в бою.`, statsSec),
     sec('Паспорт', 'Почему именно такой герой', 'Пять строк карты, из которых он сложился.', story),
     sec('Бой', 'Как сражается', 'Стиль — от класса, числа — от характеристик.', fight),
     sec('Ульта', 'Удар души', 'Умение атмакараки — самое сильное.', ult),
-    sec('Умения', 'Девять планет — девять умений', 'Восемь здесь, девятое — ульта. Сила умения — характеристика его планеты.', skills),
+    sec('Умения', 'Девять планет — девять умений', `Восемь здесь, девятое — ульта. Сила умения — характеристика его планеты, ${Plain.term('kinds', 'вид умения')} — от дома, где планета стоит.`, skills),
     sec('Суть', 'Душа и двойные звёзды', '', soul),
     sec('Слабости', 'Где он уязвим', 'И как это обыграть.', weak),
     sec('Облик', 'Как выглядит', 'Из знака лагны, планет в лагне и сильнейшей планеты.', look),
@@ -451,6 +761,8 @@ function passport(h) {
 
 function render(id) {
   const h = HEROES.find((x) => x.id === id) || HEROES[0];
+  CUR = h;
+  Plain.close();
   document.getElementById('card').innerHTML = card(h);
   document.getElementById('passport').innerHTML = passport(h);
   document.getElementById('born').textContent = h.born ? `Пример — придуманная дата: ${h.born}` : 'Дат рождения на странице нет — только то, что из них посчитано.';
@@ -487,6 +799,8 @@ function chrome() {
       <span class="el">${esc(h.elementName)} · ${esc(h.path)}</span><span class="ul">Ульта «${esc(h.ultimate.name)}» · ✦✦ ${h.doubleStars.length}</span></div></button>`).join('');
   document.getElementById('signs').innerHTML = RULES.signs.map((s, i) => `<div><span>${esc(s)}</span>${esc(RULES.classes[i].name)}</div>`).join('');
   document.addEventListener('click', (e) => {
+    const st = e.target.closest('[data-stat]');
+    if (st && CUR) { statPop(CUR, st.dataset.stat); return; }
     const b = e.target.closest('[data-hero]');
     if (!b) return;
     if (location.hash !== '#' + b.dataset.hero) location.hash = b.dataset.hero; else render(b.dataset.hero);
@@ -534,6 +848,9 @@ function start(data) {
     document.getElementById('cmp-moon').textContent = `${s.soul.nakshatra}, ${s.soul.pada}-я пада`;
     document.getElementById('cmp-dasha').textContent = s.time.md && s.time.ad ? `${s.time.md.lordName} → ${s.time.ad.lordName}` : '—';
   })();
+  document.getElementById('gloss').innerHTML = Plain.glossary();
+  Plain.fresh();
+  document.querySelectorAll('.rules li span').forEach((el) => { el.innerHTML = Plain.terms(el.innerHTML); });
   chrome();
   render(location.hash.slice(1) || HEROES[0].id);
   sky();

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru"><head><meta charset="utf-8"><title>Бой под небом</title><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head>
 <body><title>Бой под небом</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,7 +46,9 @@ button, select { font: inherit; }
 .hpnum { display: flex; justify-content: space-between; font: 500 14px var(--mono); }
 .hpnum b { font-size: 22px; color: #ff8a8a; font-weight: 500; }
 .kv { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.kv div { background: rgba(255, 255, 255, .05); border-radius: 10px; padding: 6px 8px; }
+.kv .kvb { all: unset; box-sizing: border-box; background: rgba(255, 255, 255, .05); border-radius: 10px; padding: 6px 8px; cursor: pointer; }
+.kv .kvb:hover { background: rgba(255, 255, 255, .1); }
+.kv .kvb:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; }
 .kv span { display: block; font: 500 10px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--dim); }
 .kv b { font: 500 16px var(--mono); }
 .tags { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -111,6 +113,10 @@ table.tally td:first-child { text-align: left; font: 400 14.5px var(--body); }
 .why { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .why li { border-left: 3px solid var(--saffron); padding: 2px 0 2px 12px; font-size: 15.5px; }
 footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
+.how { margin: 0; display: grid; gap: 10px; }
+.how div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.how dt { font: 500 12px/1.9 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--saffron); }
+.how dd { margin: 0; font-size: 16px; }
 @media (max-width: 980px) {
   .arena .wrap { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .center { grid-column: 1 / -1; grid-row: 2; }
@@ -126,6 +132,7 @@ footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
   .log li { grid-template-columns: 44px 10px minmax(0, 1fr); } .log li .hp { grid-column: 3; }
   .planets li { grid-template-columns: 26px minmax(0, 1fr) auto; } .planets .pos { grid-column: 2 / -1; }
   .when { margin-left: 0; }
+  .how div { grid-template-columns: minmax(0, 1fr); gap: 2px; }
 }
 @media (prefers-reduced-motion: reduce) { .hpbar i, .progress i { transition: none; } }
 </style>
@@ -164,6 +171,11 @@ footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
     <div class="two" id="mods"></div>
   </div>
   <div class="sec">
+    <header><div class="eyebrow">Подсказка</div><h2>Как читать бой</h2>
+      <p>Каждое число — от планеты. У бойца наверху можно нажать «Удар», «Броню», «Крит» и «Ульту» — там расчёт.</p></header>
+    <div id="how"></div>
+  </div>
+  <div class="sec">
     <header><div class="eyebrow">Журнал</div><h2>Ход боя</h2><p>Раунд — пять секунд. Здоровье после хода — справа.</p></header>
     <div class="log" id="log"><ol id="logl"></ol></div>
   </div>
@@ -171,11 +183,227 @@ footer.foot { padding-block: 32px 48px; color: var(--dim); font-size: 13.5px; }
     <header><div class="eyebrow">Итог</div><h2>Кто и почему</h2></header>
     <div id="result"></div>
   </div>
+  <div class="sec">
+    <header><div class="eyebrow">Словарик</div><h2>Слова джйотиша</h2><p>Всё, что подчёркнуто на странице пунктиром, — здесь целиком.</p></header>
+    <div id="gloss"></div>
+  </div>
 </main>
 
 <footer class="foot"><div class="wrap" id="foot"></div></footer>
 
 <script>
+// «Простыми словами» — общий кусок страниц «Герой по рождению» и «Бой под небом» (12.11.2026, по отзывам друзей Саши:
+// «не сильно замудрённым языком или с понятной расшифровкой терминологии»). Вставляется в оба шаблона на место метки (page-kit.ts).
+// Здесь: словарик джйотиша и игры, планета каждой характеристики, сферы домов, смысл периодов и атмакараки,
+// всплывающее пояснение по нажатию на термин. Только слова — числа приходят из движка.
+const Plain = (() => {
+  const GLYPH = { su: '☉', mo: '☽', ma: '♂', me: '☿', ju: '♃', ve: '♀', sa: '♄', ra: '☊', ke: '☋' };
+  const RU = { su: 'Солнце', mo: 'Луна', ma: 'Марс', me: 'Меркурий', ju: 'Юпитер', ve: 'Венера', sa: 'Сатурн', ra: 'Раху', ke: 'Кету' };
+  /** Родительный падеж: «период Меркурия». */
+  const GEN = { su: 'Солнца', mo: 'Луны', ma: 'Марса', me: 'Меркурия', ju: 'Юпитера', ve: 'Венеры', sa: 'Сатурна', ra: 'Раху', ke: 'Кету' };
+  /** Двенадцать домов — сферы жизни, отсчёт от лагны. */
+  const HOUSES = ['я сам', 'деньги и семья', 'смелость и братья', 'дом и мама', 'дети и творчество', 'враги и болезни',
+    'партнёр', 'тайны и перемены', 'удача и учитель', 'дело и статус', 'доходы и друзья', 'уход, сон, дальние земли'];
+
+  /** Характеристика героя ← планета: за что она в жизни и какие боевые числа даёт (названия — как в combat.numbers).
+   *  life читается и после «отвечает за …», и в начале фразы — поэтому слова, у которых эти формы совпадают. */
+  const STAT = {
+    ma: { life: 'напор, смелость, спорт, умение постоять за себя', battle: ['Обычный удар', 'Сильный удар'] },
+    me: { life: 'ум, речь, сообразительность, ловкость рук', battle: ['Шанс крита', 'Скорость бега', 'Рывок'] },
+    sa: { life: 'терпение, выносливость, порядок, долгий труд', battle: ['Броня'] },
+    su: { life: 'характер, гордость, умение вести за собой', battle: ['Сопротивление контролю'] },
+    ju: { life: 'мудрость, знание, учительство, везение', battle: ['Сила магии и лечения'] },
+    ve: { life: 'любовь, вкус, чувство прекрасного, умение договориться', battle: ['Скидка у торговцев'] },
+    mo: { life: 'чувства, настроение, тепло, внутренний запас сил', battle: ['Заряд ульты'] },
+  };
+
+  /** Атмакарака — главный урок души по традиции. */
+  const LESSON = {
+    su: 'урок света и гордости: вести за собой, не ставя себя выше других',
+    mo: 'урок чувств и заботы: беречь других и не раствориться в них',
+    ma: 'урок силы: драться за своё, но не воевать со всеми подряд',
+    me: 'урок ума и слова: говорить правду, а не только ловко',
+    ju: 'урок мудрости: учить и верить, не поучая свысока',
+    ve: 'урок любви и удовольствий: любить, не попадая в зависимость',
+    sa: 'урок терпения: принять труд и ограничения и не озлобиться',
+    ra: 'урок желаний: хотеть нового, не гоняясь за миражами',
+    ke: 'урок отпускания: отпускать без страха потерять себя',
+  };
+
+  /** Что выходит на первый план в период планеты — общие значения джйотиша. */
+  const THEME = {
+    su: 'признание, начальство, отец, своё «я»',
+    mo: 'чувства, дом, мама, забота',
+    ma: 'действие, спор, спорт, стройка, напор',
+    me: 'учёба, торговля, переговоры, тексты',
+    ju: 'рост, учитель, дети, удача, вера',
+    ve: 'любовь, красота, комфорт, искусство, деньги',
+    sa: 'труд, дисциплина, долгие дела, проверка на прочность',
+    ra: 'новое, чужое, амбиции, резкие перемены',
+    ke: 'отпускание старого, уединение, поиск смысла',
+  };
+
+  /** Словарик: ключ → [слово, коротко, объяснение]. */
+  const TERMS = {
+    graha: ['Граха', 'планета', 'Так в джйотише называют планеты. Их девять: Солнце, Луна, Марс, Меркурий, Юпитер, Венера, Сатурн и две теневые точки — Раху и Кету. От каждой у героя своя характеристика и своё умение.'],
+    lagna: ['Лагна', 'восходящий знак', 'Знак зодиака, который поднимался над горизонтом на востоке в минуту и в месте рождения. Он сменяется примерно каждые два часа — поэтому так важно точное время. Лагна — это «я сам»: тело, характер, манера действовать. У героя от неё класс, стихия и облик.'],
+    lord: ['Управитель лагны', 'хозяин восходящего знака', 'У каждого знака есть планета-хозяин: у Овна и Скорпиона — Марс, у Тельца и Весов — Венера, у Близнецов и Девы — Меркурий, у Рака — Луна, у Льва — Солнце, у Стрельца и Рыб — Юпитер, у Козерога и Водолея — Сатурн. В какой дом встал хозяин лагны — туда и тянет жизнь. У героя это путь, а сила хозяина — запас здоровья.'],
+    house: ['Дом', 'сфера жизни', 'Карта делится на 12 домов — 12 сфер жизни, отсчёт от лагны: 1 — я сам, 2 — деньги и семья, 3 — смелость и братья, 4 — дом и мама, 5 — дети и творчество, 6 — враги и болезни, 7 — партнёр, 8 — тайны и перемены, 9 — удача и учитель, 10 — дело и статус, 11 — доходы и друзья, 12 — уход, сон, дальние земли. Планета действует в сфере своего дома.'],
+    ayanamsa: ['Аянамша', 'поправка зодиака', 'Разница между западным зодиаком (по временам года) и ведическим (по звёздам) — сейчас около 24°. Из-за неё по джйотишу планеты часто стоят в соседнем знаке, не в том, что в привычном гороскопе.'],
+    nakshatra: ['Накшатра', 'лунная стоянка', 'Кроме 12 знаков, небо в джйотише делят на 27 накшатр — по 13°20′. Луна проходит одну накшатру примерно за сутки. У каждой свой символ и божество. Накшатра Луны — самое личное в карте: чувства, душа. У героя от неё пассивное умение — «душа».'],
+    pada: ['Пада', 'четверть накшатры', 'Каждая накшатра делится на четыре пады по 3°20′. Пада уточняет оттенок накшатры.'],
+    shadbala: ['Шад-бала', 'сила планеты', '«Шестерная сила» — классический расчёт того, насколько сильна планета в карте: по знаку, направлению, времени суток и года, движению, природе и взглядам других планет. У каждой планеты своя норма. У героя 50 — ровно норма, 75 — в полтора раза сильнее нормы, 25 — вдвое слабее.'],
+    rupa: ['Рупа', 'единица силы', 'Единица, в которой считают шад-балу. Норма у планет разная: у Солнца и Марса 5 рупа, у Сатурна 5, у Венеры 5,5, у Луны 6, у Юпитера 6,5, у Меркурия 7.'],
+    ak: ['Атмакарака', 'планета души', 'Планета, которая ушла дальше всех внутри своего знака — у неё самый большой градус. По традиции она показывает главный урок души в этой жизни. У героя её умение — ульта, самый сильный удар.'],
+    varga: ['Варготтама', 'двойные звёзды ✦✦', 'Планета стоит в одном и том же знаке и в основной карте, и в навамше. Такая планета действует уверенно, «вдвойне». У героя её умения помечены ✦✦.'],
+    navamsha: ['Навамша', 'карта девятых долей', 'Дополнительная карта: каждый знак делится на девять частей, и планета попадает в «знак» своей доли. Показывает глубину и зрелость планет, а ещё брак.'],
+    exalt: ['Экзальтация', 'планета на троне', 'Знак, где планета сильнее всего: Солнце в Овне, Луна в Тельце, Марс в Козероге, Меркурий в Деве, Юпитер в Раке, Венера в Рыбах, Сатурн в Весах. В бою — +10 %.'],
+    debil: ['Падение', 'планета не на своём месте', 'Знак напротив экзальтации: там планета слабеет, она «не в своей тарелке». Например, Солнце в Весах, Луна в Скорпионе. У героя это слабость: в одном случае из пяти приём на этой планете срывается. На небе дня — −10 % обоим бойцам.'],
+    combust: ['Сожжение', 'планета в лучах Солнца', 'Планета так близко к Солнцу, что теряется в его свете. У героя её умение лучше работает в одиночку, на небе дня — −15 %.'],
+    war: ['Война планет', 'две планеты ближе 1°', 'Когда две планеты (кроме Солнца и Луны) сходятся ближе чем на градус, они «спорят», и проигравшая слабеет.'],
+    retro: ['Ретроградность', 'планета «пятится» ℞', 'С Земли кажется, что планета идёт по небу назад. По традиции такая планета действует необычно и возвращает к старым делам.'],
+    nodes: ['Раху и Кету', 'теневые планеты', 'Не небесные тела, а две точки, где путь Луны пересекает путь Солнца, — там бывают затмения. Раху — жажда, иллюзии, всё новое; Кету — отрешённость и прозрение. Своей силы у них нет: они берут силу хозяина знака, где стоят.'],
+    dasha: ['Даша', 'период планеты', 'По Вимшоттари-даше жизнь делится на периоды девяти планет — всего 120 лет: Кету 7 лет, Венера 20, Солнце 6, Луна 10, Марс 7, Раху 18, Юпитер 16, Сатурн 19, Меркурий 17. С какой начать и сколько уже прошло, решает Луна при рождении. Планета периода «ведёт» эти годы.'],
+    md: ['Махадаша', 'большой период', 'Большой период одной планеты — от 6 до 20 лет. В бою: окно силы — +20 % к характеристике этой планеты, испытание — −20 %.'],
+    ad: ['Антардаша', 'подпериод', 'Период внутри махадаши — от нескольких месяцев до трёх лет; все девять планет идут по очереди. В бою: ±10 %.'],
+    func: ['Функциональная природа', 'друг или недруг этой лагны', 'Для каждого восходящего знака одни планеты помогают, другие мешают — смотря какими домами они управляют. Это не «плохая планета вообще», а неудобная именно для этой лагны. Поэтому один и тот же период у одного человека — окно силы, у другого — испытание.'],
+    yk: ['Йогакарака', 'лучшая планета для лагны', 'Планета, которая для этой лагны управляет сразу двумя лучшими домами. Её период — окно силы.'],
+    gochara: ['Гочара', 'транзит', 'Где планеты стоят сейчас — относительно карты рождения. В джйотише транзиты считают от Луны: например, Юпитер в 11-м доме от Луны — к удаче. В бою: благой дом +10 %, остальные −5 %.'],
+    sadesati: ['Саде-Сати', 'семь с половиной лет Сатурна', 'Время, пока Сатурн проходит знак перед Луной рождения, саму Луну и знак после неё, — около 7,5 лет. Нагрузка, ответственность, взросление. У героя это «личный рейд-босс»; в бою −15 % к Стойкости и Духу.'],
+    tara: ['Тара', 'звезда дня', 'Сравнивают накшатру, где Луна сегодня, с накшатрой Луны при рождении. Выходит одна из девяти «звёзд дня»: одни удачные, другие нет. В бою — прибавка или потеря шанса крита.'],
+    kinds: ['Виды умений', 'по дому планеты', 'Кендры (1, 4, 7, 10-й дома) — опора: умение активное, по кнопке. Коны (5, 9-й) — дома удачи: благословение срабатывает само. Упачаи (3, 6, 11-й) — растущие: умение крепнет со временем. 2-й дом — запас: долго копится. 8-й и 12-й — скрытые: просыпаются, когда герою совсем плохо.'],
+    kuta: ['Ашта-кута', 'совместимость пары', 'Классическая проверка совместимости по Лунам двух людей: восемь пунктов, всего 36 баллов. 18 и больше считается хорошим союзом.'],
+    ult: ['Ульта', 'главный удар', 'Самое сильное умение героя («ультимейт»). Заряжается по ходу боя; чем выше Дух (Луна), тем быстрее.'],
+    crit: ['Крит', 'критический удар', 'Удар сильнее обычного. Шанс зависит от Ловкости (Меркурий) и от сегодняшней тары.'],
+    buff: ['Бафы и дебафы', 'усиления и ослабления', 'Временные прибавки и потери к силе. Здесь их даёт небо: даши, транзиты, тара, Саде-Сати, планеты в падении и экзальтации.'],
+  };
+
+  /** Слова в тексте → термин. Порядок важен: длинное раньше короткого. Своих скобок-групп в шаблонах нет. */
+  const PAT = [
+    ['lord', 'управител[а-яё]* лагны'],
+    ['lagna', 'лагн[а-яё]*'],
+    ['nakshatra', 'накшатр[а-яё]*'],
+    ['pada', 'пад[аыу]'],
+    ['shadbala', 'шад-бал[а-яё]*'],
+    ['rupa', 'руп[аы]'],
+    ['ak', 'атмакарак[а-яё]*'],
+    ['varga', 'варготтам[а-яё]*'],
+    ['varga', 'двойн[а-яё]* звёзд[а-яё]*'],
+    ['navamsha', 'навамш[а-яё]*'],
+    ['exalt', 'экзальтаци[а-яё]*'],
+    ['debil', 'падени[а-яё]*'],
+    ['combust', 'сожж[её]н[а-яё]*'],
+    ['war', 'войн[а-яё]* планет'],
+    ['retro', 'ретроград[а-яё]*'],
+    ['nodes', 'Раху|Кету'],
+    ['md', 'махадаш[а-яё]*'],
+    ['ad', 'антардаш[а-яё]*'],
+    ['dasha', 'Вимшоттари(?:-даш[а-яё]*)?'],
+    ['dasha', 'даш[аиеуы]'],
+    ['func', 'функционально (?:злая|благая)'],
+    ['yk', 'йогакарак[а-яё]*'],
+    ['gochara', 'гочар[а-яё]*'],
+    ['gochara', 'транзит[а-яё]*'],
+    ['sadesati', 'Саде-Сати'],
+    ['tara', 'тар[аыеу]'],
+    ['kinds', 'кендр[а-яё]*|кон[аы]|упача[а-яё]*|дустхан[а-яё]*'],
+    ['kuta', 'ашта-кут[а-яё]*'],
+    ['ult', 'ульт[аыеу]'],
+    ['crit', 'крит(?:а|ов|ы)?'],
+    ['buff', 'баф[а-яё]*|дебаф[а-яё]*'],
+    ['ayanamsa', 'аянамш[а-яё]*'],
+    ['graha', 'грах[аиуеы]?'],
+    ['house', '\\d+-(?:м|й|го) дом[а-яё]*'],
+  ];
+  const RX = new RegExp('(^|[^а-яёa-z0-9-])(?:' + PAT.map(([, p]) => '(' + p + ')').join('|') + ')(?![а-яёa-z])', 'giu');
+  let seen = new Set();
+
+  /** Начать новый раздел: в каждом разделе термин подсвечивается один раз — первое упоминание. */
+  function fresh() { seen = new Set(); }
+
+  /** Уже экранированный текст → тот же текст, где термины стали кнопками с пояснением. */
+  function terms(html) {
+    return String(html).replace(RX, (m, pre, ...g) => {
+      const i = g.findIndex((x, j) => j < PAT.length && x !== undefined);
+      const key = PAT[i][0], word = g[i];
+      if (seen.has(key)) return m;
+      seen.add(key);
+      return `${pre}<button type="button" class="term" data-term="${key}">${word}</button>`;
+    });
+  }
+
+  /** Кнопка-термин руками: term('gochara', 'Гочара'). */
+  const term = (key, text) => `<button type="button" class="term" data-term="${key}">${text}</button>`;
+
+  /** «Ловкость» + «☿ Меркурий» — характеристика вместе со своей планетой. */
+  const statLabel = (name, g) => `${name} <small class="pl">${GLYPH[g]} ${RU[g]}</small>`;
+
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  let box = null, back = null;
+  /** Всплывающее пояснение снизу экрана: заголовок, подзаголовок, текст (готовый HTML). */
+  function pop(title, sub, html) {
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'pop'; box.setAttribute('role', 'dialog'); box.hidden = true;
+      document.body.appendChild(box);
+      box.addEventListener('click', (e) => { if (e.target.closest('.pop-x')) close(); });
+    }
+    back = document.activeElement;
+    box.setAttribute('aria-label', title.replace(/<[^>]+>/g, ''));
+    box.innerHTML = `<button type="button" class="pop-x" aria-label="Закрыть">×</button>${sub ? `<div class="pop-s">${sub}</div>` : ''}<h4>${title}</h4><div class="pop-t">${html}</div>`;
+    box.hidden = false;
+    box.querySelector('.pop-x').focus({ preventScroll: true });
+  }
+  function close() {
+    if (!box || box.hidden) return;
+    box.hidden = true;
+    if (back && back.focus) back.focus({ preventScroll: true });
+  }
+  function show(key) {
+    const t = TERMS[key];
+    if (t) pop(esc(t[0]), esc(t[1]), `<p>${esc(t[2])}</p>`);
+  }
+
+  /** Словарик целиком — для раздела в конце страницы. */
+  function glossary() {
+    return `<dl class="gloss">${Object.keys(TERMS).map((k) => `<div><dt>${esc(TERMS[k][0])} <span>${esc(TERMS[k][1])}</span></dt><dd>${esc(TERMS[k][2])}</dd></div>`).join('')}</dl>`;
+  }
+
+  const css = document.createElement('style');
+  css.textContent = `
+.term { all: unset; cursor: help; border-bottom: 1px dotted currentColor; }
+.term:hover { color: var(--saffron); border-bottom-color: var(--saffron); }
+.term:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; border-radius: 2px; }
+small.pl { font: 400 11.5px var(--mono); color: rgba(239, 232, 214, .55); white-space: nowrap; }
+.pop { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
+  width: min(540px, calc(100% - 32px)); max-height: 70vh; overflow: auto; background: #1c2347; color: var(--parchment);
+  border: 1px solid rgba(239, 232, 214, .3); border-radius: 16px; padding: 14px 44px 16px 18px; box-shadow: 0 24px 70px -12px rgba(0, 0, 0, .8); }
+.pop h4 { margin: 2px 0 0; font: 400 26px/1.1 var(--display); }
+.pop-s { font: 500 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--saffron); }
+.pop-t p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; }
+.pop-t table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+.pop-t td { padding: 5px 8px 5px 0; border-top: 1px solid rgba(239, 232, 214, .12); vertical-align: top; }
+.pop-t td:last-child { text-align: right; font: 500 14px var(--mono); color: var(--saffron); white-space: nowrap; }
+.pop-x { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(239, 232, 214, .25);
+  background: transparent; color: var(--parchment); font-size: 20px; line-height: 1; cursor: pointer; }
+.gloss { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; }
+.gloss div { border-top: 1px solid var(--line); padding-top: 8px; }
+.gloss dt { font-weight: 600; } .gloss dt span { font-weight: 400; color: var(--saffron); font-size: 13.5px; }
+.gloss dd { margin: 2px 0 0; color: var(--dim); font-size: 14.5px; }
+@media (max-width: 640px) { .gloss { grid-template-columns: minmax(0, 1fr); } }`;
+  document.head.appendChild(css);
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('.term');
+    if (t) { e.preventDefault(); show(t.dataset.term); return; }
+    if (box && !box.hidden && !e.target.closest('.pop') && !e.target.closest('[data-pop]')) close();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  return { GLYPH, RU, GEN, HOUSES, STAT, LESSON, THEME, TERMS, fresh, terms, term, statLabel, pop, show, close, glossary, esc };
+})();
+
 let D, B, S, ev = [];
 const GLYPH = { su: '☉', mo: '☽', ma: '♂', me: '☿', ju: '♃', ve: '♀', sa: '♄', ra: '☊', ke: '☋' };
 const SIGNS = ['Ов', 'Тл', 'Бл', 'Рк', 'Лв', 'Дв', 'Вс', 'Ск', 'Ст', 'Кз', 'Вд', 'Рб'];
@@ -185,6 +413,43 @@ const deg = (d) => `${Math.floor(d)}°${String(Math.floor((d % 1) * 60)).padStar
 const col = (i) => (i ? '#8fc8ff' : '#eaa53c');
 const sgn = (n) => (n > 0 ? '+' : n < 0 ? '−' : '±') + Math.abs(n);
 
+/** Боевое число бойца — кнопка с расчётом. */
+const kv = (i, key, name, g, val) => `<button type="button" class="kvb" data-pop data-kv="${key}" data-side="${i}"><span>${name} ${Plain.GLYPH[g]}</span><b>${val}</b></button>`;
+
+/** Пояснение к боевому числу: формула, от какой планеты, что сегодня поменяло небо. */
+function kvPop(i, key) {
+  const f = S[i], b = B.sides[i], P = Plain;
+  const base = (g) => (f.stats.find((s) => s.graha === g) || {}).value;
+  const st = (g, name) => `${name} (${P.RU[g]}) сегодня ${b.stats[g]}` + (base(g) != null && base(g) !== b.stats[g] ? `, по рождению ${base(g)} — разницу дало небо` : '');
+  const C = {
+    dmg: ['Удар', `${b.dmg} урона`, [`Обычный удар: 10 + 1,2 × Сила. ${st('ma', 'Сила')}.`, 'Последний удар серии комбо — сильный: ×2,2 и со стихией класса. Броня соперника гасит свою долю.']],
+    armor: ['Броня', `гасит ${b.armor} % урона`, [`Броня: Стойкость / 2,5, но не больше 60 %. ${st('sa', 'Стойкость')}.`, 'Щиты от умений Сатурна и Юпитера — поверх брони.']],
+    crit: ['Крит', `шанс ${b.crit} %`, [`Шанс крита: 5 + Ловкость / 10 + тара дня. ${st('me', 'Ловкость')}.`,
+      `Тара сегодня — ${f.tara.name} (${f.tara.about}): ${f.tara.crit >= 0 ? '+' : '−'}${Math.abs(f.tara.crit)} к шансу. Крит бьёт ×1,8.`, 'У кого Ловкость выше, тот и ходит первым.']],
+    ult: ['Ульта', `через ${b.ultIn} раундов`, [`«${f.ult.name}» — умение планеты души: атмакарака — ${P.RU[f.ult.graha]}.`,
+      `Заряжается (70 − Дух / 2) секунд боя, раунд — 5 секунд. ${st('mo', 'Дух')}.`]],
+  }[key];
+  if (!C) return;
+  P.fresh();
+  P.pop(`${C[0]} <small class="pl">${esc(f.name)}</small>`, esc(C[1]), C[2].map((t) => `<p>${P.terms(esc(t))}</p>`).join(''));
+}
+
+/** «Как читать бой» — откуда каждое число, простыми словами. */
+function howHtml() {
+  const P = Plain, L = (g) => `${P.GLYPH[g]} ${P.RU[g]}`;
+  P.fresh();
+  const items = [
+    ['Здоровье', 'от силы управителя лагны: 1000 × во сколько раз он сильнее нормы.'],
+    ['Удар', `Сила (${L('ma')}). Броня — Стойкость (${L('sa')}): гасит долю урона.`],
+    ['Крит', `Ловкость (${L('me')}) и тара дня. Ловкость решает и то, кто ходит первым.`],
+    ['Ульта', `заряжается от Духа (${L('mo')}): чем он выше, тем раньше главный удар.`],
+    ['Лечение', '«Дар» Юпитера и «Зеркало» Луны, а удары со стихией Воды подлечивают того, кто бьёт. Поэтому здоровье может расти посреди боя.'],
+    ['Промах', 'соперник увернулся: финт Меркурия («Шёпот»), невидимость Раху («Морок») и ульта Солнца уводят следующий удар мимо.'],
+    ['Небо', 'меняет всё на проценты: даши, гочара, тара, Саде-Сати — смотрите «Что сегодня у каждого».'],
+  ];
+  return `<dl class="how">${items.map(([k, v]) => `<div><dt>${k}</dt><dd>${P.terms(esc(v))}</dd></div>`).join('')}</dl>`;
+}
+
 function fighterHtml(i) {
   const f = S[i], b = B.sides[i];
   const taraCls = f.tara.good === true ? 'good' : f.tara.good === false ? 'bad' : '';
@@ -193,9 +458,8 @@ function fighterHtml(i) {
     <span class="sub">${esc(f.path)} · <b>${esc(f.element)}</b> · ${esc(f.weapon)}</span>
     <div class="hpnum"><span>Здоровье</span><span><b id="hp${i}">${b.maxHp}</b> / ${b.maxHp}</span></div>
     <div class="hpbar"><i id="bar${i}"></i></div>
-    <div class="kv"><div><span>Удар</span><b>${b.dmg}</b></div><div><span>Броня</span><b>${b.armor}%</b></div>
-      <div><span>Крит</span><b>${b.crit}%</b></div><div><span>Ульта</span><b>${b.ultIn} р.</b></div></div>
-    <div class="tags"><span class="tag ${taraCls}">тара ${esc(f.tara.name)}</span>${f.sadeSati ? '<span class="tag bad">Саде-Сати</span>' : ''}
+    <div class="kv">${kv(i, 'dmg', 'Удар', 'ma', b.dmg)}${kv(i, 'armor', 'Броня', 'sa', b.armor + '%')}${kv(i, 'crit', 'Крит', 'me', b.crit + '%')}${kv(i, 'ult', 'Ульта', 'mo', b.ultIn + ' р.')}</div>
+    <div class="tags"><span class="tag ${taraCls}">${Plain.term('tara', 'тара')} ${esc(f.tara.name)}</span>${f.sadeSati ? `<span class="tag bad">${Plain.term('sadesati', 'Саде-Сати')}</span>` : ''}
       <span class="tag">ульта «${esc(f.ult.name)}»</span></div>
   </div></article>`;
 }
@@ -243,18 +507,19 @@ function skyList() {
 
 function modsHtml(i) {
   const f = S[i], b = B.sides[i];
+  Plain.fresh();
   const taraCls = f.tara.good === true ? 'good' : f.tara.good === false ? 'bad' : '';
   const rows = f.stats.map((s) => {
     const now = b.stats[s.graha], d = Math.round((now / s.value - 1) * 100);
-    return `<tr><td>${esc(s.name)}</td><td class="n">${s.value}</td><td class="n ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${now}</td><td class="n ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d ? sgn(d) + '%' : '—'}</td></tr>`;
+    return `<tr><td>${Plain.statLabel(esc(s.name), s.graha)}</td><td class="n">${s.value}</td><td class="n ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${now}</td><td class="n ${d > 0 ? 'up' : d < 0 ? 'down' : ''}">${d ? sgn(d) + '%' : '—'}</td></tr>`;
   }).join('');
   const order = ['даша', 'гочара', 'Саде-Сати', 'небо'];
   const mods = [...f.mods].sort((a, b) => order.indexOf(a.source) - order.indexOf(b.source)).map((m) =>
-    `<li><span class="pct ${m.pct > 0 ? 'up' : 'down'}">${sgn(m.pct)}%</span><span><b>${esc(m.target)}</b> — ${esc(m.why)} <span class="src">${esc(m.source)}</span></span></li>`).join('');
-  const per = (p, big) => p ? `${big ? 'Махадаша' : 'антардаша'} ${esc(p.lordName)} — ${p.kind === 'power' ? 'окно силы' : p.kind === 'trial' ? 'испытание' : 'ровно'}` : '';
+    `<li><span class="pct ${m.pct > 0 ? 'up' : 'down'}">${sgn(m.pct)}%</span><span><b>${esc(m.target)}</b> — ${Plain.terms(esc(m.why))} <span class="src">${esc(m.source)}</span></span></li>`).join('');
+  const per = (p, big) => p ? `${big ? Plain.term('md', 'Махадаша') : Plain.term('ad', 'антардаша')} ${esc(p.lordName)} — ${p.kind === 'power' ? 'окно силы' : p.kind === 'trial' ? 'испытание' : 'ровно'}` : '';
   return `<div class="col" style="--c1:${f.colors[0]}"><div><span class="eyebrow" style="color:${col(i)}">● ${esc(f.name)}</span><h3>${esc(f.className)}</h3>
       <p class="muted" style="margin:4px 0 0">${per(f.md, true)}; ${per(f.ad, false)}</p></div>
-    <div class="tara ${taraCls}"><span class="eyebrow" style="color:var(--dim)">Тара Луны сегодня · ${esc(f.tara.nakshatra)}</span><br>
+    <div class="tara ${taraCls}"><span class="eyebrow" style="color:var(--dim)">${Plain.term('tara', 'Тара')} Луны сегодня · ${esc(f.tara.nakshatra)}</span><br>
       <b>${esc(f.tara.name)}</b> — ${esc(f.tara.about)}; шанс крита ${f.tara.crit >= 0 ? '+' : '−'}${Math.abs(f.tara.crit)} → ${b.crit} %</div>
     <table class="st"><tbody><tr><td class="muted">Характеристика</td><td class="n muted">база</td><td class="n muted">сегодня</td><td></td></tr>${rows}</tbody></table>
     <ul class="mods">${mods}</ul></div>`;
@@ -291,11 +556,20 @@ function resultHtml() {
     const n = net(i);
     why.push(`${S[i].name}: тара ${S[i].tara.name} (${S[i].tara.about}) — крит ${B.sides[i].crit} %, критов за бой — ${T[i].crits}. Сильнее всего сегодня помогло: ${n.best[0]} ${sgn(n.best[1])} %, мешало: ${n.worst[0]} ${sgn(n.worst[1])} %.`);
   }
+  for (const i of [0, 1]) {
+    if (!T[i].healed) continue;
+    const by = {};
+    for (const e of B.events) if (e.actor === i && e.heal) by[e.title] = (by[e.title] || 0) + e.heal;
+    const listed = Object.values(by).reduce((a, v) => a + v, 0);
+    const parts = Object.entries(by).sort((a, z) => z[1] - a[1]).map(([t, v]) => `${t.replace(/^УЛЬТА /, 'ульта ')} — ${v}`);
+    if (T[i].healed > listed) parts.push(`удары со стихией Воды — ${T[i].healed - listed}`);
+    why.push(`Почему здоровье росло: ${S[i].name} ${S[i].female ? 'вылечила' : 'вылечил'} себе ${T[i].healed} — ${parts.join(', ')}.`);
+  }
   const misses = (i) => T[i].misses;
   if (misses(0) + misses(1)) why.push(`Промахов по сопернику: ${S[0].name} — ${misses(0)}, ${S[1].name} — ${misses(1)}. Невидимость, финты и ослепление решали не меньше силы.`);
   const fall = D.sky.filter((p) => p.state === 'debilitated').length;
   if (fall) why.push(`Небо одно на двоих: ${fall} планеты в падении сегодня ослабили обоих одинаково.`);
-  if (D.kuta != null) why.push(`Совместимость пары по ашта-куте — ${D.kuta} из 36: бой дружеский${D.kuta >= 18 ? ', союз прочный' : ''}.`);
+  if (D.kuta != null) why.push(`Совместимость пары по ашта-куте — ${String(D.kuta).replace('.', ',')} из 36: бой дружеский${D.kuta >= 18 ? ', союз прочный' : ''}.`);
   return `<p class="result">${head}</p>
     <div style="overflow-x:auto"><table class="tally"><thead><tr><th></th><th>${esc(S[0].name)}</th><th>${esc(S[1].name)}</th></tr></thead><tbody>
       ${row('Нанесено урона', 'dealt')}${row('Вылечено', 'healed')}${row('Критов', 'crits')}${row('Ульт', 'ults')}${row('Умений', 'skills')}${row('Промахов по сопернику', 'misses')}${row('Срывов (планета в падении)', 'slips')}
@@ -367,6 +641,10 @@ function start(data) {
   document.getElementById('mods').innerHTML = modsHtml(0) + modsHtml(1);
   logHtml();
   document.getElementById('result').innerHTML = resultHtml();
+  document.getElementById('how').innerHTML = howHtml();
+  document.getElementById('gloss').innerHTML = Plain.glossary();
+  document.querySelectorAll('.sec > header p').forEach((p) => { Plain.fresh(); p.innerHTML = Plain.terms(p.innerHTML); });
+  document.addEventListener('click', (e) => { const k = e.target.closest('[data-kv]'); if (k) kvPop(Number(k.dataset.side), k.dataset.kv); });
   document.getElementById('foot').textContent = `Посчитано программой «Джйотиш» по карточкам «${S[0].name}» и «${S[1].name}» и небу на ${D.when}. ` +
     `Бой — по зерну ${D.seed}: повторяется один в один. Боевые числа и правила хода — первая версия. Дат рождения в бою нет.`;
   show(-1);
