@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head>
+<body><title>Книга героя</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Forum&family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&display=swap">
+<style>
+/* Раскладка: стол летописца (тёмное дерево), на нём фолиант. На компьютере — разворот из двух страниц: слева история,
+   справа поля летописца; листается стрелками и клавишами. На телефоне те же страницы — одним свитком.
+   Цвета книги: пергамент, железо-галловые чернила, киноварь для заглавий, золото обложки. */
+:root {
+  --desk: #17110d;
+  --desk-2: #241a13;
+  --paper: #f1e4c6;
+  --paper-2: #e6d4ad;
+  --ink: #2b1d10;
+  --ink-2: #5b4630;
+  --rubric: #8e2a1c;
+  --gold: #b8892f;
+  --gold-2: #e2c27a;
+  --leather: #4a2a1c;
+  --leather-2: #2c170e;
+  /* имена из «простыми словами» (plain.js): термины, словарик, всплывающие пояснения */
+  --saffron: #8e2a1c;
+  --dim: #6b5640;
+  --line: rgba(59, 42, 26, .2);
+  --line-2: rgba(59, 42, 26, .35);
+  --parchment: #2b1d10;
+  --display: 'Forum', 'Cormorant Garamond', Georgia, serif;
+  --body: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+  --mono: 'Cormorant Garamond', Georgia, serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { background: var(--desk); }
+body { margin: 0; min-height: 100vh; color: var(--ink); font: 500 17.5px/1.5 var(--body);
+  background: radial-gradient(120% 90% at 50% 0%, #2d2018 0%, var(--desk) 60%), var(--desk); }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+
+/* стол и книга. Текст книги — один поток (.flow), браузер раскладывает его колонками ровно по ширине страницы;
+   разворот — две соседние колонки, листание — сдвиг ленты на две страницы. Подложки страниц с номерами — .bg под потоком. */
+.desk { min-height: 100vh; display: grid; place-items: center; padding: 18px 16px 76px; }
+.book { position: relative; width: min(1240px, 100%, calc((100vh - 110px) * 1.44)); aspect-ratio: 1.44; padding: 12px;
+  border-radius: 10px; background: linear-gradient(135deg, var(--leather), var(--leather-2)); box-shadow: 0 40px 90px -30px #000, inset 0 0 0 2px rgba(226, 194, 122, .25); }
+.book.closed { background: none; box-shadow: none; }
+.book.closed .view { visibility: hidden; }
+.cover-wrap { position: absolute; inset: 0; display: none; place-items: center; }
+.book.closed .cover-wrap { display: grid; }
+.view { position: absolute; inset: 12px; overflow: hidden; border-radius: 6px; perspective: 2400px; }
+.strip { position: absolute; top: 0; left: 0; height: 100%; }
+.bg { position: absolute; top: 0; height: 100%; width: var(--pw); background: var(--paper);
+  background-image:
+    radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(120, 84, 40, .22) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.bg.l { border-radius: 6px 0 0 6px; box-shadow: inset -26px 0 30px -22px rgba(60, 38, 16, .55); }
+.bg.r { border-radius: 0 6px 6px 0; box-shadow: inset 26px 0 30px -22px rgba(60, 38, 16, .55); }
+.folio { position: absolute; bottom: 12px; left: 0; right: 0; text-align: center; font: 500 14px var(--body); color: var(--ink-2); letter-spacing: .1em; pointer-events: none; }
+.folio::before, .folio::after { content: "❧"; margin: 0 8px; color: var(--gold); font-size: 12px; }
+.flow { position: relative; z-index: 1; width: calc(var(--pw) * 2); height: var(--ph); column-count: 2; column-gap: calc(var(--px) * 2); column-fill: auto;
+  padding: var(--py) var(--px) var(--pb); orphans: 2; widows: 2; }
+.blk.newpage { break-before: column; }
+.blk.full { min-height: var(--ch); display: flex; flex-direction: column; justify-content: center; break-inside: avoid; }
+.filler { break-before: column; break-after: column; height: var(--ch); display: grid; place-items: center; color: var(--gold); font-size: 22px; opacity: .6; }
+.end { break-before: column; height: 1px; }
+.ch-head { break-inside: avoid; break-after: avoid; }
+.blk.notes { margin-top: 14px; }
+.blk.notes::before { content: "❦"; display: block; text-align: center; color: var(--gold); font-size: 20px; margin-bottom: 8px; }
+.marg-head, .marg-sec h4, .rule h4 { break-after: avoid; }
+.marg-head, .period, .rule, .chips, .headpiece, .prompt, .gloss div, .app li, .st, .facts, .sheet dl div, .toc li { break-inside: avoid; }
+/* переворот страницы: чистый лист поворачивается вокруг корешка, лента под ним уже сдвинута */
+.turner { position: absolute; top: 0; height: 100%; width: 50%; z-index: 5; pointer-events: none; background: var(--paper);
+  background-image:
+    radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(120, 84, 40, .22) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.turner.fwd { left: 50%; transform-origin: left center; animation: flipF .6s ease-in-out forwards; }
+.turner.back { left: 0; transform-origin: right center; animation: flipB .6s ease-in-out forwards; }
+@keyframes flipF { 0% { transform: rotateY(0); box-shadow: 0 0 0 rgba(0, 0, 0, 0); } 50% { box-shadow: -30px 0 40px rgba(0, 0, 0, .35); } 85% { opacity: 1; } 100% { transform: rotateY(-180deg); opacity: 0; } }
+@keyframes flipB { 0% { transform: rotateY(0); box-shadow: 0 0 0 rgba(0, 0, 0, 0); } 50% { box-shadow: 30px 0 40px rgba(0, 0, 0, .35); } 85% { opacity: 1; } 100% { transform: rotateY(180deg); opacity: 0; } }
+.nav { position: fixed; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; gap: 10px; padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(transparent, rgba(10, 7, 5, .85) 40%); color: var(--gold-2); }
+.nav button { border: 1px solid rgba(226, 194, 122, .45); background: rgba(20, 13, 9, .6); border-radius: 999px; padding: 6px 16px; cursor: pointer; color: var(--gold-2); }
+.nav button:disabled { opacity: .35; cursor: default; }
+.nav .where { font: 500 15px var(--body); min-width: 120px; text-align: center; letter-spacing: .06em; }
+
+/* обложка */
+.cover-book { width: min(560px, 50%); height: 100%; border-radius: 6px 12px 12px 6px; position: relative; display: grid; place-items: center; text-align: center; padding: 40px 36px;
+  background: radial-gradient(90% 70% at 50% 35%, #6a3a24, var(--leather) 60%, var(--leather-2)); color: var(--gold-2);
+  box-shadow: inset 10px 0 18px -6px rgba(0, 0, 0, .55), inset 0 0 0 10px rgba(0, 0, 0, .12), inset 0 0 0 12px rgba(226, 194, 122, .5), inset 0 0 0 14px rgba(0, 0, 0, .25), 0 30px 60px -20px #000; }
+.cover-book .ov { font: 500 13px var(--body); letter-spacing: .4em; text-transform: uppercase; color: rgba(226, 194, 122, .75); }
+.cover-book h1 { font: 400 clamp(34px, 4.2vw, 54px)/1.05 var(--display); margin: 14px 0 8px; color: var(--gold-2); text-shadow: 0 1px 0 rgba(0, 0, 0, .5); }
+.cover-book .sub { font: italic 500 20px var(--body); color: rgba(226, 194, 122, .85); }
+.cover-book svg.emb { width: min(230px, 60%); height: auto; margin: 18px auto; display: block; }
+.open-btn { margin-top: 18px; border: 1px solid var(--gold-2); background: rgba(0, 0, 0, .2); color: var(--gold-2); border-radius: 999px; padding: 9px 26px; cursor: pointer; font: 600 17px var(--body); letter-spacing: .06em; }
+
+/* типографика страниц */
+.kicker { font: 500 14px var(--body); letter-spacing: .32em; text-transform: uppercase; color: var(--rubric); text-align: center; }
+.ch-title { font: 400 32px/1.1 var(--display); text-align: center; margin: 4px 0 4px; color: var(--ink); text-wrap: balance; }
+.headpiece { margin: 2px auto 4px; width: min(220px, 60%); }
+.headpiece svg { width: 100%; height: auto; display: block; }
+.epigraph { font: italic 500 17px/1.35 var(--body); text-align: center; color: var(--ink-2); margin: 0 auto 10px; max-width: 30em; }
+.story { font-size: 17px; line-height: 1.45; }
+.story p { margin: 0 0 .6em; text-align: justify; hyphens: auto; text-indent: 1.4em; }
+.story p.first { text-indent: 0; }
+.dropcap { float: left; font: 400 64px/.82 var(--display); color: var(--rubric); margin: 6px 8px 0 0; padding: 4px 6px 2px; border: 1.5px solid var(--gold); background: rgba(184, 137, 47, .1); }
+.orn { text-align: center; color: var(--gold); letter-spacing: .6em; margin: 8px 0; font-size: 14px; }
+.marg-head { display: flex; align-items: center; gap: 12px; justify-content: center; font: 400 26px var(--display); color: var(--rubric); margin-bottom: 4px; }
+.marg-head .gl { font-size: 28px; color: var(--ink); width: 44px; height: 44px; border: 1.5px solid var(--gold); border-radius: 50%; display: grid; place-items: center; background: rgba(184, 137, 47, .08); }
+.marg-sec { margin: 12px 0 0; }
+.marg-sec h4, .rule h4 { margin: 0 0 4px; font: 600 13px var(--body); letter-spacing: .22em; text-transform: uppercase; color: var(--rubric); }
+.marg-sec p { margin: 0 0 6px; font-size: 16.5px; }
+.period { font-size: 16px; padding: 6px 10px; border-left: 3px solid var(--gold); background: rgba(184, 137, 47, .1); margin: 0 0 6px !important; }
+.k-power { color: #2f6b3a; font-weight: 700; } .k-trial { color: var(--rubric); font-weight: 700; } .k-even { color: var(--ink-2); font-weight: 700; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+.chip { font: 600 14.5px var(--body); border: 1px solid var(--line-2); border-radius: 999px; padding: 1px 10px; background: rgba(255, 255, 255, .25); }
+.chip.up { color: #2f6b3a; border-color: rgba(47, 107, 58, .45); } .chip.down { color: var(--rubric); border-color: rgba(142, 42, 28, .45); }
+.rule { margin: 16px 0 0; padding: 12px 14px; border: 1.5px solid var(--rubric); border-radius: 4px; position: relative; background: rgba(142, 42, 28, .05); }
+.rule p { margin: 0; font: italic 600 18px/1.4 var(--body); }
+
+/* титул и лист героя */
+.title-pg { text-align: center; }
+.title-pg .ov { font: 500 14px var(--body); letter-spacing: .4em; text-transform: uppercase; color: var(--rubric); }
+.title-pg h1 { font: 400 46px/1.05 var(--display); margin: 10px 0 4px; }
+.title-pg .sub { font: italic 500 21px var(--body); color: var(--ink-2); }
+.title-pg svg { width: min(250px, 70%); margin: 16px auto 10px; display: block; }
+.title-pg .note { font-size: 15px; color: var(--ink-2); max-width: 26em; margin: 8px auto 0; }
+.sheet h2, .toc h2, .app h2 { font: 400 30px var(--display); text-align: center; margin: 0 0 4px; }
+.sheet .lead { text-align: center; font-style: italic; color: var(--ink-2); margin: 0 0 10px; }
+.facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin: 0 0 10px; text-align: center; }
+.facts div { border: 1px solid var(--line-2); border-radius: 4px; padding: 4px 6px; background: rgba(255, 255, 255, .2); }
+.facts span { display: block; font: 600 12px var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--rubric); }
+.facts b { font: 400 20px var(--display); }
+.statl { display: grid; gap: 3px; margin: 6px 0 10px; }
+.st { all: unset; box-sizing: border-box; display: grid; grid-template-columns: 170px minmax(0, 1fr) 30px; gap: 10px; align-items: center; cursor: pointer; padding: 1px 4px; border-radius: 3px; }
+.st:hover { background: rgba(184, 137, 47, .14); }
+.st:focus-visible { outline: 2px solid var(--gold); }
+.st .t { position: relative; height: 7px; border: 1px solid var(--ink-2); border-radius: 1px; }
+.st .t i { position: absolute; inset: 0 auto 0 0; background: repeating-linear-gradient(-45deg, var(--ink) 0 2px, transparent 2px 4px); }
+.st .t em { position: absolute; left: 50%; top: -4px; bottom: -4px; border-left: 1px solid var(--rubric); }
+.st b { font: 600 18px var(--body); text-align: right; }
+html body small.pl { color: var(--ink-2); font: italic 500 14px var(--body); }
+.sheet dl { margin: 0; display: grid; gap: 6px; }
+.sheet dl div { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 10px; border-top: 1px solid var(--line); padding-top: 5px; font-size: 16.5px; }
+.sheet dt { font: 600 13px/1.8 var(--body); letter-spacing: .16em; text-transform: uppercase; color: var(--rubric); }
+.sheet dd { margin: 0; }
+.toc ol { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 2px; }
+.toc li button { all: unset; box-sizing: border-box; width: 100%; display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 0 12px; align-items: baseline; padding: 5px 4px; border-bottom: 1px dotted var(--line-2); cursor: pointer; }
+.toc li button:hover { background: rgba(184, 137, 47, .12); }
+.toc li button:focus-visible { outline: 2px solid var(--gold); }
+.toc .k { font: 600 12.5px var(--body); letter-spacing: .12em; text-transform: uppercase; color: var(--rubric); }
+.toc .n { font: 400 20px/1.2 var(--display); }
+.toc .y { grid-column: 2; font-style: italic; font-size: 15.5px; line-height: 1.2; color: var(--ink-2); }
+.toc .y:empty { display: none; }
+.toc .lock { color: var(--rubric); margin-left: 4px; }
+.toc .now-tag, .now-flag { font: 600 12px var(--body); letter-spacing: .12em; text-transform: uppercase; color: #fff; background: var(--rubric); border-radius: 3px; padding: 1px 6px; margin-left: 6px; vertical-align: 2px; }
+.map svg { width: 100%; height: auto; max-height: calc(var(--ch) - 96px); display: block; margin: 0 auto; }
+.map h2 { font: 400 30px var(--display); text-align: center; margin: 0; }
+.map p { text-align: center; font-style: italic; color: var(--ink-2); margin: 0 0 6px; }
+.sealpg { text-align: center; display: grid; gap: 6px; }
+.sealpg svg { width: 170px; margin: 0 auto; display: block; }
+.sealpg h3 { font: 400 30px/1.15 var(--display); margin: 6px 0; }
+.sealpg p { margin: 0 auto; max-width: 26em; }
+.sealpg ul { list-style: none; padding: 0; margin: 8px auto; text-align: left; max-width: 24em; }
+.sealpg li { border-bottom: 1px dotted var(--line-2); padding: 3px 0; }
+.sealed-story { text-align: center; margin-top: 18px; }
+.sealed-story svg { width: 120px; margin: 0 auto; display: block; }
+.sealed-story p { font-style: italic; color: var(--ink-2); }
+.ghost { margin-top: 10px; display: grid; gap: 9px; opacity: .5; break-inside: avoid; }
+.ghost i { display: block; height: 9px; border-radius: 4px; background: rgba(91, 70, 48, .22); }
+.app h3 { font: 400 22px var(--display); margin: 12px 0 4px; color: var(--rubric); }
+.app ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.app li { border-top: 1px solid var(--line); padding-top: 4px; font-size: 16px; }
+.app li b { font-weight: 700; }
+.app .muted { color: var(--ink-2); font-style: italic; }
+.prompt { margin: 6px 0 10px; }
+.prompt p { margin: 0; font-size: 15px; color: var(--ink-2); }
+.copy { border: 1px solid var(--rubric); background: transparent; color: var(--rubric); border-radius: 999px; padding: 1px 12px; cursor: pointer; font: 600 14px var(--body); margin-top: 4px; }
+.colophon { margin-top: 16px; font-size: 14.5px; color: var(--ink-2); font-style: italic; text-align: center; }
+html body .gloss { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+html body .gloss dd { color: var(--ink-2); font-size: 15.5px; }
+html body .pop { background: #f6ebd2; color: var(--ink); border: 1px solid #8a6a3f; box-shadow: 0 24px 60px -12px rgba(0, 0, 0, .7); font-family: var(--body); }
+html body .pop h4 { font-family: var(--display); }
+html body .pop-s { color: var(--rubric); font-family: var(--body); font-weight: 600; }
+html body .pop-t p { font-size: 17px; }
+html body .pop-t td { border-top-color: rgba(59, 42, 26, .18); }
+html body .pop-t td:last-child { color: var(--rubric); font-family: var(--body); font-weight: 700; }
+html body .pop-x { color: var(--ink); border-color: rgba(43, 29, 16, .35); }
+
+/* телефон: свиток — тот же поток одной лентой, без колонок */
+@media (max-width: 900px) {
+  body { font-size: 18px; }
+  .desk { display: block; padding: 18px 10px 40px; }
+  .nav { display: none; }
+  .book, .book.closed { width: 100%; aspect-ratio: auto; padding: 0; background: none; box-shadow: none; }
+  .book::before, .book::after { content: ""; display: block; height: 22px; margin: 0 -6px; border-radius: 11px;
+    background: linear-gradient(#7a4f2c, #3a2214 55%, #1d110a); box-shadow: 0 6px 12px -4px #000; position: relative; z-index: 2; }
+  .cover-wrap, .book.closed .cover-wrap { position: static; display: block; }
+  .book.closed .view { visibility: visible; }
+  .view { position: static; overflow: visible; perspective: none; border-radius: 0; }
+  .strip { position: static; transform: none !important; }
+  .bg, .filler, .turner, .end { display: none !important; }
+  .flow { width: auto; height: auto; column-count: auto; padding: 26px 22px 40px; background: var(--paper);
+  background-image:
+    radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(120, 84, 40, .22) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+    box-shadow: inset 12px 0 18px -14px rgba(60, 38, 16, .5), inset -12px 0 18px -14px rgba(60, 38, 16, .5); }
+  .blk.newpage { margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(91, 70, 48, .25); }
+  .blk.newpage:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+  .blk.full { min-height: 0; padding-bottom: 10px; }
+  .map svg { max-height: none; }
+  .cover-book { width: 100%; height: auto; min-height: 70vh; border-radius: 0; }
+  .open-btn { display: none; }
+  .st { grid-template-columns: 150px minmax(0, 1fr) 28px; }
+  .facts b { font-size: 17px; }
+  .sheet dl div { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .toc li button { grid-template-columns: minmax(0, 1fr); }
+  .toc .y { grid-column: 1; }
+  .story p { text-align: left; hyphens: manual; }
+}
+@media (prefers-reduced-motion: reduce) { .turner { display: none; } }
+</style>
+
+<div class="desk">
+  <div class="book closed" id="book">
+    <div class="cover-wrap" id="cover"></div>
+    <div class="view" id="view" aria-live="polite"><div class="strip" id="strip"><div id="bgs"></div><div class="flow" id="flow"></div></div></div>
+  </div>
+</div>
+<nav class="nav" aria-label="Листать книгу">
+  <button type="button" id="prev" aria-label="Назад">‹</button>
+  <button type="button" id="toToc">Оглавление</button>
+  <span class="where" id="where"></span>
+  <button type="button" id="next" aria-label="Вперёд">›</button>
+</nav>
+
+<script>
+// «Простыми словами» — общий кусок страниц «Герой по рождению» и «Бой под небом» (12.11.2026, по отзывам друзей Саши:
+// «не сильно замудрённым языком или с понятной расшифровкой терминологии»). Вставляется в оба шаблона на место метки (page-kit.ts).
+// Здесь: словарик джйотиша и игры, планета каждой характеристики, сферы домов, смысл периодов и атмакараки,
+// всплывающее пояснение по нажатию на термин. Только слова — числа приходят из движка.
+const Plain = (() => {
+  const GLYPH = { su: '☉', mo: '☽', ma: '♂', me: '☿', ju: '♃', ve: '♀', sa: '♄', ra: '☊', ke: '☋' };
+  const RU = { su: 'Солнце', mo: 'Луна', ma: 'Марс', me: 'Меркурий', ju: 'Юпитер', ve: 'Венера', sa: 'Сатурн', ra: 'Раху', ke: 'Кету' };
+  /** Родительный падеж: «период Меркурия». */
+  const GEN = { su: 'Солнца', mo: 'Луны', ma: 'Марса', me: 'Меркурия', ju: 'Юпитера', ve: 'Венеры', sa: 'Сатурна', ra: 'Раху', ke: 'Кету' };
+  /** Двенадцать домов — сферы жизни, отсчёт от лагны. */
+  const HOUSES = ['я сам', 'деньги и семья', 'смелость и братья', 'дом и мама', 'дети и творчество', 'враги и болезни',
+    'партнёр', 'тайны и перемены', 'удача и учитель', 'дело и статус', 'доходы и друзья', 'уход, сон, дальние земли'];
+
+  /** Характеристика героя ← планета: за что она в жизни и какие боевые числа даёт (названия — как в combat.numbers).
+   *  life читается и после «отвечает за …», и в начале фразы — поэтому слова, у которых эти формы совпадают. */
+  const STAT = {
+    ma: { life: 'напор, смелость, спорт, умение постоять за себя', battle: ['Обычный удар', 'Сильный удар'] },
+    me: { life: 'ум, речь, сообразительность, ловкость рук', battle: ['Шанс крита', 'Скорость бега', 'Рывок'] },
+    sa: { life: 'терпение, выносливость, порядок, долгий труд', battle: ['Броня'] },
+    su: { life: 'характер, гордость, умение вести за собой', battle: ['Сопротивление контролю'] },
+    ju: { life: 'мудрость, знание, учительство, везение', battle: ['Сила магии и лечения'] },
+    ve: { life: 'любовь, вкус, чувство прекрасного, умение договориться', battle: ['Скидка у торговцев'] },
+    mo: { life: 'чувства, настроение, тепло, внутренний запас сил', battle: ['Заряд ульты'] },
+  };
+
+  /** Атмакарака — главный урок души по традиции. */
+  const LESSON = {
+    su: 'урок света и гордости: вести за собой, не ставя себя выше других',
+    mo: 'урок чувств и заботы: беречь других и не раствориться в них',
+    ma: 'урок силы: драться за своё, но не воевать со всеми подряд',
+    me: 'урок ума и слова: говорить правду, а не только ловко',
+    ju: 'урок мудрости: учить и верить, не поучая свысока',
+    ve: 'урок любви и удовольствий: любить, не попадая в зависимость',
+    sa: 'урок терпения: принять труд и ограничения и не озлобиться',
+    ra: 'урок желаний: хотеть нового, не гоняясь за миражами',
+    ke: 'урок отпускания: отпускать без страха потерять себя',
+  };
+
+  /** Что выходит на первый план в период планеты — общие значения джйотиша. */
+  const THEME = {
+    su: 'признание, начальство, отец, своё «я»',
+    mo: 'чувства, дом, мама, забота',
+    ma: 'действие, спор, спорт, стройка, напор',
+    me: 'учёба, торговля, переговоры, тексты',
+    ju: 'рост, учитель, дети, удача, вера',
+    ve: 'любовь, красота, комфорт, искусство, деньги',
+    sa: 'труд, дисциплина, долгие дела, проверка на прочность',
+    ra: 'новое, чужое, амбиции, резкие перемены',
+    ke: 'отпускание старого, уединение, поиск смысла',
+  };
+
+  /** Словарик: ключ → [слово, коротко, объяснение]. */
+  const TERMS = {
+    graha: ['Граха', 'планета', 'Так в джйотише называют планеты. Их девять: Солнце, Луна, Марс, Меркурий, Юпитер, Венера, Сатурн и две теневые точки — Раху и Кету. От каждой у героя своя характеристика и своё умение.'],
+    lagna: ['Лагна', 'восходящий знак', 'Знак зодиака, который поднимался над горизонтом на востоке в минуту и в месте рождения. Он сменяется примерно каждые два часа — поэтому так важно точное время. Лагна — это «я сам»: тело, характер, манера действовать. У героя от неё класс, стихия и облик.'],
+    lord: ['Управитель лагны', 'хозяин восходящего знака', 'У каждого знака есть планета-хозяин: у Овна и Скорпиона — Марс, у Тельца и Весов — Венера, у Близнецов и Девы — Меркурий, у Рака — Луна, у Льва — Солнце, у Стрельца и Рыб — Юпитер, у Козерога и Водолея — Сатурн. В какой дом встал хозяин лагны — туда и тянет жизнь. У героя это путь, а сила хозяина — запас здоровья.'],
+    house: ['Дом', 'сфера жизни', 'Карта делится на 12 домов — 12 сфер жизни, отсчёт от лагны: 1 — я сам, 2 — деньги и семья, 3 — смелость и братья, 4 — дом и мама, 5 — дети и творчество, 6 — враги и болезни, 7 — партнёр, 8 — тайны и перемены, 9 — удача и учитель, 10 — дело и статус, 11 — доходы и друзья, 12 — уход, сон, дальние земли. Планета действует в сфере своего дома.'],
+    ayanamsa: ['Аянамша', 'поправка зодиака', 'Разница между западным зодиаком (по временам года) и ведическим (по звёздам) — сейчас около 24°. Из-за неё по джйотишу планеты часто стоят в соседнем знаке, не в том, что в привычном гороскопе.'],
+    nakshatra: ['Накшатра', 'лунная стоянка', 'Кроме 12 знаков, небо в джйотише делят на 27 накшатр — по 13°20′. Луна проходит одну накшатру примерно за сутки. У каждой свой символ и божество. Накшатра Луны — самое личное в карте: чувства, душа. У героя от неё пассивное умение — «душа».'],
+    pada: ['Пада', 'четверть накшатры', 'Каждая накшатра делится на четыре пады по 3°20′. Пада уточняет оттенок накшатры.'],
+    shadbala: ['Шад-бала', 'сила планеты', '«Шестерная сила» — классический расчёт того, насколько сильна планета в карте: по знаку, направлению, времени суток и года, движению, природе и взглядам других планет. У каждой планеты своя норма. У героя 50 — ровно норма, 75 — в полтора раза сильнее нормы, 25 — вдвое слабее.'],
+    rupa: ['Рупа', 'единица силы', 'Единица, в которой считают шад-балу. Норма у планет разная: у Солнца и Марса 5 рупа, у Сатурна 5, у Венеры 5,5, у Луны 6, у Юпитера 6,5, у Меркурия 7.'],
+    ak: ['Атмакарака', 'планета души', 'Планета, которая ушла дальше всех внутри своего знака — у неё самый большой градус. По традиции она показывает главный урок души в этой жизни. У героя её умение — ульта, самый сильный удар.'],
+    varga: ['Варготтама', 'двойные звёзды ✦✦', 'Планета стоит в одном и том же знаке и в основной карте, и в навамше. Такая планета действует уверенно, «вдвойне». У героя её умения помечены ✦✦.'],
+    navamsha: ['Навамша', 'карта девятых долей', 'Дополнительная карта: каждый знак делится на девять частей, и планета попадает в «знак» своей доли. Показывает глубину и зрелость планет, а ещё брак.'],
+    exalt: ['Экзальтация', 'планета на троне', 'Знак, где планета сильнее всего: Солнце в Овне, Луна в Тельце, Марс в Козероге, Меркурий в Деве, Юпитер в Раке, Венера в Рыбах, Сатурн в Весах. В бою — +10 %.'],
+    debil: ['Падение', 'планета не на своём месте', 'Знак напротив экзальтации: там планета слабеет, она «не в своей тарелке». Например, Солнце в Весах, Луна в Скорпионе. У героя это слабость: в одном случае из пяти приём на этой планете срывается. На небе дня — −10 % обоим бойцам.'],
+    combust: ['Сожжение', 'планета в лучах Солнца', 'Планета так близко к Солнцу, что теряется в его свете. У героя её умение лучше работает в одиночку, на небе дня — −15 %.'],
+    war: ['Война планет', 'две планеты ближе 1°', 'Когда две планеты (кроме Солнца и Луны) сходятся ближе чем на градус, они «спорят», и проигравшая слабеет.'],
+    retro: ['Ретроградность', 'планета «пятится» ℞', 'С Земли кажется, что планета идёт по небу назад. По традиции такая планета действует необычно и возвращает к старым делам.'],
+    nodes: ['Раху и Кету', 'теневые планеты', 'Не небесные тела, а две точки, где путь Луны пересекает путь Солнца, — там бывают затмения. Раху — жажда, иллюзии, всё новое; Кету — отрешённость и прозрение. Своей силы у них нет: они берут силу хозяина знака, где стоят.'],
+    dasha: ['Даша', 'период планеты', 'По Вимшоттари-даше жизнь делится на периоды девяти планет — всего 120 лет: Кету 7 лет, Венера 20, Солнце 6, Луна 10, Марс 7, Раху 18, Юпитер 16, Сатурн 19, Меркурий 17. С какой начать и сколько уже прошло, решает Луна при рождении. Планета периода «ведёт» эти годы.'],
+    md: ['Махадаша', 'большой период', 'Большой период одной планеты — от 6 до 20 лет. В бою: окно силы — +20 % к характеристике этой планеты, испытание — −20 %.'],
+    ad: ['Антардаша', 'подпериод', 'Период внутри махадаши — от нескольких месяцев до трёх лет; все девять планет идут по очереди. В бою: ±10 %.'],
+    func: ['Функциональная природа', 'друг или недруг этой лагны', 'Для каждого восходящего знака одни планеты помогают, другие мешают — смотря какими домами они управляют. Это не «плохая планета вообще», а неудобная именно для этой лагны. Поэтому один и тот же период у одного человека — окно силы, у другого — испытание.'],
+    yk: ['Йогакарака', 'лучшая планета для лагны', 'Планета, которая для этой лагны управляет сразу двумя лучшими домами. Её период — окно силы.'],
+    gochara: ['Гочара', 'транзит', 'Где планеты стоят сейчас — относительно карты рождения. В джйотише транзиты считают от Луны: например, Юпитер в 11-м доме от Луны — к удаче. В бою: благой дом +10 %, остальные −5 %.'],
+    sadesati: ['Саде-Сати', 'семь с половиной лет Сатурна', 'Время, пока Сатурн проходит знак перед Луной рождения, саму Луну и знак после неё, — около 7,5 лет. Нагрузка, ответственность, взросление. У героя это «личный рейд-босс»; в бою −15 % к Стойкости и Духу.'],
+    tara: ['Тара', 'звезда дня', 'Сравнивают накшатру, где Луна сегодня, с накшатрой Луны при рождении. Выходит одна из девяти «звёзд дня»: одни удачные, другие нет. В бою — прибавка или потеря шанса крита.'],
+    kinds: ['Виды умений', 'по дому планеты', 'Кендры (1, 4, 7, 10-й дома) — опора: умение активное, по кнопке. Коны (5, 9-й) — дома удачи: благословение срабатывает само. Упачаи (3, 6, 11-й) — растущие: умение крепнет со временем. 2-й дом — запас: долго копится. 8-й и 12-й — скрытые: просыпаются, когда герою совсем плохо.'],
+    kuta: ['Ашта-кута', 'совместимость пары', 'Классическая проверка совместимости по Лунам двух людей: восемь пунктов, всего 36 баллов. 18 и больше считается хорошим союзом.'],
+    ult: ['Ульта', 'главный удар', 'Самое сильное умение героя («ультимейт»). Заряжается по ходу боя; чем выше Дух (Луна), тем быстрее.'],
+    crit: ['Крит', 'критический удар', 'Удар сильнее обычного. Шанс зависит от Ловкости (Меркурий) и от сегодняшней тары.'],
+    buff: ['Бафы и дебафы', 'усиления и ослабления', 'Временные прибавки и потери к силе. Здесь их даёт небо: даши, транзиты, тара, Саде-Сати, планеты в падении и экзальтации.'],
+  };
+
+  /** Слова в тексте → термин. Порядок важен: длинное раньше короткого. Своих скобок-групп в шаблонах нет. */
+  const PAT = [
+    ['lord', 'управител[а-яё]* лагны'],
+    ['lagna', 'лагн[а-яё]*'],
+    ['nakshatra', 'накшатр[а-яё]*'],
+    ['pada', 'пад[аыу]'],
+    ['shadbala', 'шад-бал[а-яё]*'],
+    ['rupa', 'руп[аы]'],
+    ['ak', 'атмакарак[а-яё]*'],
+    ['varga', 'варготтам[а-яё]*'],
+    ['varga', 'двойн[а-яё]* звёзд[а-яё]*'],
+    ['navamsha', 'навамш[а-яё]*'],
+    ['exalt', 'экзальтаци[а-яё]*'],
+    ['debil', 'падени[а-яё]*'],
+    ['combust', 'сожж[её]н[а-яё]*'],
+    ['war', 'войн[а-яё]* планет'],
+    ['retro', 'ретроград[а-яё]*'],
+    ['nodes', 'Раху|Кету'],
+    ['md', 'махадаш[а-яё]*'],
+    ['ad', 'антардаш[а-яё]*'],
+    ['dasha', 'Вимшоттари(?:-даш[а-яё]*)?'],
+    ['dasha', 'даш[аиеуы]'],
+    ['func', 'функционально (?:злая|благая)'],
+    ['yk', 'йогакарак[а-яё]*'],
+    ['gochara', 'гочар[а-яё]*'],
+    ['gochara', 'транзит[а-яё]*'],
+    ['sadesati', 'Саде-Сати'],
+    ['tara', 'тар[аыеу]'],
+    ['kinds', 'кендр[а-яё]*|кон[аы]|упача[а-яё]*|дустхан[а-яё]*'],
+    ['kuta', 'ашта-кут[а-яё]*'],
+    ['ult', 'ульт[аыеу]'],
+    ['crit', 'крит(?:а|ов|ы)?'],
+    ['buff', 'баф[а-яё]*|дебаф[а-яё]*'],
+    ['ayanamsa', 'аянамш[а-яё]*'],
+    ['graha', 'грах[аиуеы]?'],
+    ['house', '\\d+-(?:м|й|го) дом[а-яё]*'],
+  ];
+  const RX = new RegExp('(^|[^а-яёa-z0-9-])(?:' + PAT.map(([, p]) => '(' + p + ')').join('|') + ')(?![а-яёa-z])', 'giu');
+  let seen = new Set();
+
+  /** Начать новый раздел: в каждом разделе термин подсвечивается один раз — первое упоминание. */
+  function fresh() { seen = new Set(); }
+
+  /** Уже экранированный текст → тот же текст, где термины стали кнопками с пояснением. */
+  function terms(html) {
+    return String(html).replace(RX, (m, pre, ...g) => {
+      const i = g.findIndex((x, j) => j < PAT.length && x !== undefined);
+      const key = PAT[i][0], word = g[i];
+      if (seen.has(key)) return m;
+      seen.add(key);
+      return `${pre}<button type="button" class="term" data-term="${key}">${word}</button>`;
+    });
+  }
+
+  /** Кнопка-термин руками: term('gochara', 'Гочара'). */
+  const term = (key, text) => `<button type="button" class="term" data-term="${key}">${text}</button>`;
+
+  /** «Ловкость» + «☿ Меркурий» — характеристика вместе со своей планетой. */
+  const statLabel = (name, g) => `${name} <small class="pl">${GLYPH[g]} ${RU[g]}</small>`;
+
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  let box = null, back = null;
+  /** Всплывающее пояснение снизу экрана: заголовок, подзаголовок, текст (готовый HTML). */
+  function pop(title, sub, html) {
+    if (!box) {
+      box = document.createElement('div');
+      box.className = 'pop'; box.setAttribute('role', 'dialog'); box.hidden = true;
+      document.body.appendChild(box);
+      box.addEventListener('click', (e) => { if (e.target.closest('.pop-x')) close(); });
+    }
+    back = document.activeElement;
+    box.setAttribute('aria-label', title.replace(/<[^>]+>/g, ''));
+    box.innerHTML = `<button type="button" class="pop-x" aria-label="Закрыть">×</button>${sub ? `<div class="pop-s">${sub}</div>` : ''}<h4>${title}</h4><div class="pop-t">${html}</div>`;
+    box.hidden = false;
+    box.querySelector('.pop-x').focus({ preventScroll: true });
+  }
+  function close() {
+    if (!box || box.hidden) return;
+    box.hidden = true;
+    if (back && back.focus) back.focus({ preventScroll: true });
+  }
+  function show(key) {
+    const t = TERMS[key];
+    if (t) pop(esc(t[0]), esc(t[1]), `<p>${esc(t[2])}</p>`);
+  }
+
+  /** Словарик целиком — для раздела в конце страницы. */
+  function glossary() {
+    return `<dl class="gloss">${Object.keys(TERMS).map((k) => `<div><dt>${esc(TERMS[k][0])} <span>${esc(TERMS[k][1])}</span></dt><dd>${esc(TERMS[k][2])}</dd></div>`).join('')}</dl>`;
+  }
+
+  const css = document.createElement('style');
+  css.textContent = `
+.term { all: unset; cursor: help; border-bottom: 1px dotted currentColor; }
+.term:hover { color: var(--saffron); border-bottom-color: var(--saffron); }
+.term:focus-visible { outline: 2px solid var(--saffron); outline-offset: 2px; border-radius: 2px; }
+small.pl { font: 400 11.5px var(--mono); color: rgba(239, 232, 214, .55); white-space: nowrap; }
+.pop { position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 60;
+  width: min(540px, calc(100% - 32px)); max-height: 70vh; overflow: auto; background: #1c2347; color: var(--parchment);
+  border: 1px solid rgba(239, 232, 214, .3); border-radius: 16px; padding: 14px 44px 16px 18px; box-shadow: 0 24px 70px -12px rgba(0, 0, 0, .8); }
+.pop h4 { margin: 2px 0 0; font: 400 26px/1.1 var(--display); }
+.pop-s { font: 500 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--saffron); }
+.pop-t p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; }
+.pop-t table { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+.pop-t td { padding: 5px 8px 5px 0; border-top: 1px solid rgba(239, 232, 214, .12); vertical-align: top; }
+.pop-t td:last-child { text-align: right; font: 500 14px var(--mono); color: var(--saffron); white-space: nowrap; }
+.pop-x { position: absolute; top: 8px; right: 8px; width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(239, 232, 214, .25);
+  background: transparent; color: var(--parchment); font-size: 20px; line-height: 1; cursor: pointer; }
+.gloss { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 24px; }
+.gloss div { border-top: 1px solid var(--line); padding-top: 8px; }
+.gloss dt { font-weight: 600; } .gloss dt span { font-weight: 400; color: var(--saffron); font-size: 13.5px; }
+.gloss dd { margin: 2px 0 0; color: var(--dim); font-size: 14.5px; }
+@media (max-width: 640px) { .gloss { grid-template-columns: minmax(0, 1fr); } }`;
+  document.head.appendChild(css);
+
+  document.addEventListener('click', (e) => {
+    const t = e.target.closest('.term');
+    if (t) { e.preventDefault(); show(t.dataset.term); return; }
+    if (box && !box.hidden && !e.target.closest('.pop') && !e.target.closest('[data-pop]')) close();
+  });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+
+  return { GLYPH, RU, GEN, HOUSES, STAT, LESSON, THEME, TERMS, fresh, terms, term, statLabel, pop, show, close, glossary, esc };
+})();
+
+let H, M, W, SEALED = false, cur = -1, pw = 0, pages = 0;
+const P = Plain;
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const T = (s) => P.terms(esc(s));
+const KIND = { power: 'окно силы', trial: 'испытание', even: 'ровное время' };
+const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+
+/* ── гравюры ─────────────────────────────────────────────────────────── */
+const INK = '#3b2a1a', RUB = '#8e2a1c', GOLD = '#b8892f';
+const st = `fill="none" stroke="${INK}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"`;
+const thin = `fill="none" stroke="${INK}" stroke-width=".9" stroke-linecap="round" opacity=".7"`;
+const frame = (inner) => `<svg viewBox="0 0 220 120" role="img" aria-hidden="true">
+  <path d="M8 60 H38 M182 60 H212" ${thin}/><circle cx="40" cy="60" r="2" fill="${GOLD}"/><circle cx="180" cy="60" r="2" fill="${GOLD}"/>${inner}</svg>`;
+const rays = (cx, cy, r1, r2, from, to, n) => Array.from({ length: n }, (_, i) => {
+  const a = (from + (to - from) * (i / (n - 1))) * Math.PI / 180;
+  return `<line x1="${(cx + r1 * Math.cos(a)).toFixed(1)}" y1="${(cy + r1 * Math.sin(a)).toFixed(1)}" x2="${(cx + r2 * Math.cos(a)).toFixed(1)}" y2="${(cy + r2 * Math.sin(a)).toFixed(1)}" ${thin}/>`;
+}).join('');
+const bricks = (x0, x1, y0, rows, h = 10, w = 22) => {
+  let s = '';
+  for (let r = 0; r < rows; r++) {
+    const y = y0 + r * h;
+    s += `<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" ${st}/>`;
+    for (let x = x0 + (r % 2 ? w / 2 : 0); x < x1; x += w) s += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + h}" ${thin}/>`;
+  }
+  return s + `<line x1="${x0}" y1="${y0 + rows * h}" x2="${x1}" y2="${y0 + rows * h}" ${st}/>`;
+};
+const dagger = (rot) => `<g transform="rotate(${rot} 110 62)"><path d="M110 18 L115 30 L115 70 L105 70 L105 30 Z" ${st}/><path d="M110 22 V68" ${thin}/>
+  <path d="M96 72 H124" stroke-width="3" ${st}/><path d="M107 74 H113 V92 H107 Z" ${st}/><circle cx="110" cy="96" r="3.5" ${st}/></g>`;
+const ART = {
+  gates: () => frame(`${rays(110, 52, 46, 58, 200, 340, 11)}
+    <path d="M70 108 V52 A40 40 0 0 1 150 52 V108" ${st}/><path d="M80 108 V54 A30 30 0 0 1 140 54 V108" ${st}/>
+    <path d="M110 24 V108" ${st}/><circle cx="104" cy="78" r="2.6" ${st}/><circle cx="116" cy="78" r="2.6" ${st}/>
+    <path d="M40 108 H180" ${st}/><path d="M86 66 H104 M116 66 H134 M86 90 H104 M116 90 H134" ${thin}/>
+    <path d="M110 6 l2 5 5 .5 -4 3 1.5 5 -4.5-3 -4.5 3 1.5-5 -4-3 5-.5z" fill="${GOLD}" stroke="none"/>`),
+  wall: () => frame(`${bricks(52, 168, 72, 4)}<path d="M98 40 h26 v12 h-26 z" ${st}/><path d="M92 34 l-6 -6 M130 34 l6 -6 M111 30 v-8" ${thin}/>
+    <path d="M150 30 V62" ${thin}/><path d="M146 62 l4 8 4 -8 z" ${st}/><path d="M64 60 l16 -12 6 6 -16 12 z" ${st}/>`),
+  daggers: () => frame(`${dagger(-32)}${dagger(32)}<path d="M40 30 q14 -8 28 0 t28 0 M146 96 q14 -8 28 0" ${thin}/>`),
+  wanderer: () => frame(`<path d="M30 60 q20 -10 40 0 t40 0 t40 0 t40 0 M40 84 q20 -10 40 0 t40 0 t40 0 M30 104 q20 -8 40 0 t40 0 t40 0 t40 0" ${thin}/>
+    <path d="M100 44 Q110 18 120 44 Q122 58 110 62 Q98 58 100 44 Z" ${st}/><path d="M104 44 Q110 30 116 44 Q114 52 110 54 Q106 52 104 44 Z" fill="${INK}" opacity=".85"/>
+    <path d="M100 58 L88 108 H132 L120 58" ${st}/><path d="M140 108 V22" ${st}/><path d="M140 22 q8 -2 6 -9 q-3 -6 -9 -2" ${st}/>`),
+  silk: () => frame(`<path d="M44 20 L176 100 M44 100 L176 20 M60 14 L160 106 M60 106 L160 14 M36 60 H184" opacity=".35" ${thin}/>
+    <path d="M110 58 m-4 0 a4 4 0 1 1 8 0 a8 8 0 1 1 -16 0 a12 12 0 1 1 24 0 a16 16 0 1 1 -32 0" stroke="${RUB}" ${st}/>
+    <path d="M110 74 V110 M110 92 q-14 -6 -18 -16 q12 2 18 10 M110 100 q12 -6 18 -16 q-12 2 -18 10" ${st}/>`),
+  crown: () => frame(`${rays(110, 70, 22, 34, 0, 345, 24)}<circle cx="110" cy="70" r="18" fill="${GOLD}" fill-opacity=".25" ${st}/>
+    <path d="M86 40 L92 22 L100 34 L110 16 L120 34 L128 22 L134 40 Z" fill="${GOLD}" fill-opacity=".35" ${st}/><path d="M86 44 H134" ${st}/>
+    <circle cx="110" cy="27" r="2" fill="${RUB}"/>`),
+  tide: () => frame(`<path d="M122 22 A26 26 0 1 0 122 74 A20 20 0 1 1 122 22 Z" fill="${INK}" fill-opacity=".07" ${st}/>
+    <path d="M40 86 q12 -8 24 0 t24 0 t24 0 t24 0 t24 0 t24 0" ${st}/><path d="M48 98 q12 -8 24 0 t24 0 t24 0 t24 0 t24 0" ${thin}/>
+    <path d="M40 110 q12 -6 24 0 t24 0 t24 0 t24 0 t24 0 t24 0" ${thin}/><path d="M150 30 l1.5 4 4 .5 -3 2.5 1 4 -3.5 -2 -3.5 2 1 -4 -3 -2.5 4 -.5z" fill="${GOLD}"/>`),
+  spear: () => frame(`<path d="M52 108 L166 18" stroke-width="2.2" ${st}/><path d="M166 18 L150 22 L158 30 Z" fill="${INK}" ${st}/>
+    <path d="M146 34 L120 30 L132 46 Z" fill="${RUB}" fill-opacity=".65" ${st}/><path d="M40 70 H78 M48 82 H92 M56 94 H100" ${thin}/>`),
+  serpent: () => frame(`<path d="M30 86 C50 52 70 118 92 84 S132 50 152 82" stroke-width="5" opacity=".9" ${st}/><path d="M30 86 C50 52 70 118 92 84 S132 50 152 82" fill="none" stroke="#f1e4c6" stroke-width="2"/>
+    <ellipse cx="160" cy="78" rx="10" ry="6" ${st}/><circle cx="163" cy="76" r="1.3" fill="${RUB}"/><path d="M170 79 l8 -2 M170 79 l8 3" ${thin}/>
+    <path d="M60 40 q-8 -10 2 -16 q12 -4 12 8 M96 34 q-6 -12 6 -16 q12 0 10 12 M130 40 q0 -12 12 -12 q10 2 6 14" ${thin}/>
+    <path d="M98 108 h20 v-10 h-20 z" ${st}/>`),
+  throne: () => frame(`<path d="M92 72 V26 Q110 8 128 26 V72" ${st}/><path d="M98 70 V32 Q110 20 122 32 V70" ${thin}/>
+    <path d="M82 72 H138 V82 H82 Z" fill="${GOLD}" fill-opacity=".25" ${st}/><path d="M86 82 V108 M134 82 V108 M82 62 H96 M124 62 H138 M82 62 V72 M138 62 V72" ${st}/>
+    <path d="M102 18 l3 -8 5 6 5 -6 3 8 z" fill="${GOLD}" fill-opacity=".5" ${st}/>
+    ${[[60, 30], [160, 30], [54, 66], [166, 66], [72, 96], [148, 96]].map(([x, y]) => `<path transform="translate(${x} ${y})" d="M0 -5 l1.5 3.5 3.5 .3 -2.7 2.4 .8 3.6 -3.1 -1.9 -3.1 1.9 .8 -3.6 -2.7 -2.4 3.5 -.3z" fill="${GOLD}"/>`).join('')}`),
+  sickle: () => frame(`<path d="M86 96 C60 70 70 26 116 18 C92 34 86 62 104 84 Z" fill="#c9ced8" fill-opacity=".55" ${st}/><path d="M104 84 L116 106" ${st} stroke-width="3.2"/>
+    ${[132, 146, 160].map((x, k) => `<path d="M${x} 108 Q${x - 2} 70 ${x + 4} ${40 + k * 6}" ${thin}/>${[0, 1, 2, 3].map((j) => `<ellipse cx="${x + 3 - j * .5}" cy="${48 + k * 6 + j * 9}" rx="2.4" ry="4.5" transform="rotate(${j % 2 ? 25 : -25} ${x + 3 - j * .5} ${48 + k * 6 + j * 9})" ${thin}/>`).join('')}`).join('')}
+    <path d="M40 108 H180" ${thin}/>`),
+  shadow: () => frame(`<path d="M68 24 A16 16 0 1 0 68 56 A12 12 0 1 1 68 24 Z" ${st}/>${bricks(116, 176, 88, 2)}
+    <circle cx="110" cy="46" r="10" fill="${INK}" opacity=".75"/><path d="M98 60 h24 l8 48 h-40 z" fill="${INK}" opacity=".6"/>
+    <circle cx="140" cy="46" r="10" ${st}/><path d="M128 60 h24 l8 48 h-40 z" ${st}/>`),
+};
+const seal = (letter) => `<svg viewBox="0 0 120 130" role="img" aria-label="Печать">
+  <path d="M44 100 L36 128 L50 118 L58 128 L60 102 M76 100 L84 128 L70 118 L62 128 L60 102" fill="${RUB}" opacity=".8"/>
+  <path d="${Array.from({ length: 24 }, (_, i) => { const a = i / 24 * Math.PI * 2, r = i % 2 ? 46 : 50; return `${i ? 'L' : 'M'}${(60 + r * Math.cos(a)).toFixed(1)} ${(60 + r * Math.sin(a)).toFixed(1)}`; }).join(' ')} Z" fill="${RUB}"/>
+  <circle cx="60" cy="60" r="34" fill="none" stroke="#5c1a10" stroke-width="2"/><circle cx="60" cy="60" r="29" fill="none" stroke="#c0503a" stroke-width="1"/>
+  <text x="60" y="73" text-anchor="middle" font-family="Forum, Georgia, serif" font-size="38" fill="#f1d8b8">${esc(letter)}</text></svg>`;
+/** Оружие на гербе — по планете ауры: Меркурий — кинжалы, Луна — серп, остальные — меч остриём вверх. */
+const shieldWeapon = (g) => g === 'me' ? `<g transform="translate(-10 4) scale(.82) translate(24 6)">${dagger(-32)}${dagger(32)}</g>`
+  : g === 'mo' ? `<path d="M100 92 C78 70 86 34 124 28 C102 42 98 64 112 84 Z" fill="#c9ced8" fill-opacity=".7" ${st}/><path d="M112 84 L122 102" stroke-width="3.2" ${st}/>`
+  : `<path d="M110 28 L115 38 V80 H105 V38 Z" fill="#d9d4c8" ${st}/><path d="M96 82 H124" stroke-width="3" ${st}/><path d="M107 84 H113 V98 H107 Z" ${st}/><circle cx="110" cy="101" r="3" ${st}/>`;
+function shield(h) {
+  const stars = h.doubleStars.map((g, i) => { const x = 70 + i * (80 / Math.max(1, h.doubleStars.length - 1 || 1)); return `<path transform="translate(${h.doubleStars.length === 1 ? 110 : x.toFixed(1)} 136)" d="M0 -6 l1.8 4 4.2 .4 -3.2 2.8 1 4.2 -3.8 -2.2 -3.8 2.2 1 -4.2 -3.2 -2.8 4.2 -.4z" fill="${GOLD}"/>`; }).join('');
+  return `<svg viewBox="0 0 220 150" role="img" aria-label="Герб ${W.gen}">
+    <path d="M60 24 A50 50 0 0 1 160 24" ${thin}/>
+    <path d="M70 22 H150 V66 Q150 104 110 120 Q70 104 70 66 Z" fill="${h.colors[0]}" fill-opacity=".22" stroke="${INK}" stroke-width="1.8"/>
+    <path d="M70 22 L150 100" ${thin}/>${shieldWeapon(h.look.aura.graha)}
+    <circle cx="110" cy="12" r="9" fill="${GOLD}" fill-opacity=".25" stroke="${INK}"/><text x="110" y="17" text-anchor="middle" font-size="13" fill="${INK}">${P.GLYPH[h.ultimate.graha]}</text>${stars}</svg>`;
+}
+function wheel(h) {
+  let dots = '';
+  for (let i = 0; i < 27; i++) {
+    const a = (i / 27) * Math.PI * 2 - Math.PI / 2, x = (50 + 40 * Math.cos(a)).toFixed(2), y = (50 + 40 * Math.sin(a)).toFixed(2);
+    const big = i === h.emblem.index || i === h.soul.index;
+    dots += `<circle cx="${x}" cy="${y}" r="${big ? 3.6 : 1.4}" fill="${big ? '#f3d98f' : 'rgba(226,194,122,.6)'}"/>`;
+  }
+  return `<svg class="emb" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="46" fill="none" stroke="rgba(226,194,122,.7)" stroke-width=".7"/>
+    <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(226,194,122,.45)" stroke-width=".5"/>${dots}
+    <circle cx="50" cy="50" r="26" fill="rgba(0,0,0,.15)" stroke="rgba(226,194,122,.7)" stroke-width=".7"/>
+    <text x="50" y="58" text-anchor="middle" font-family="Forum, Georgia, serif" font-size="22" fill="#f3d98f">${P.GLYPH[h.ultimate.graha]}</text></svg>`;
+}
+
+/* ── данные глав ─────────────────────────────────────────────────────── */
+const parseD = (s) => { const [d, m, y] = s.split('.').map(Number); return new Date(y, m - 1, d).getTime(); };
+const isOpen = (i) => !SEALED || i < M.free;
+/** Глава, в которой «сейчас»: по её периодам. */
+function nowChapter() {
+  const t = Date.now();
+  let best = -1;
+  M.chapters.forEach((c, i) => (c.periods || []).forEach((p) => { if (!p.big && parseD(p.start) <= t && t < parseD(p.end)) best = i; }));
+  return best;
+}
+const statName = (g) => (H.stats.find((s) => s.graha === g) || {}).name;
+function effects(c) {
+  if (c.effects) return c.effects.map((e) => `<span class="chip down">${esc(e)}</span>`).join('');
+  return (c.periods || []).map((p) => {
+    const what = statName(p.lord) || `умения ${P.GEN[p.lord]}`;
+    if (p.kind === 'even') return `<span class="chip">${esc(what)} — без изменений</span>`;
+    const v = p.big ? 20 : 10;
+    return `<span class="chip ${p.kind === 'power' ? 'up' : 'down'}">${esc(what)} ${p.kind === 'power' ? '+' : '−'}${v} %</span>`;
+  }).join('');
+}
+function periodLine(p) {
+  const what = p.big ? `Большой период ${P.GEN[p.lord]}` : `Подпериод ${P.GEN[p.lord]}` + (p.mdLord !== p.lord ? ` внутри большого периода ${P.GEN[p.mdLord]}` : '');
+  return `<p class="period">${T(what)} · ${esc(p.start)} — ${esc(p.end)} · <span class="k-${p.kind}">${KIND[p.kind]}</span> <span class="muted">(${T(p.why)})</span></p>`;
+}
+
+/* ── страницы ────────────────────────────────────────────────────────── */
+function storyPage(c, i) {
+  P.fresh();
+  const head = `<div class="ch-head"><div class="kicker">${esc(c.kicker)} · ${esc(c.years)}</div><h2 class="ch-title">${esc(c.title)}</h2>
+    <figure class="headpiece">${(ART[c.art] || ART.gates)()}</figure><p class="epigraph">«${esc(c.epigraph)}»</p></div>`;
+  if (!isOpen(i)) return head + `<div class="sealed-story">${seal(H.name.charAt(0))}<p>Глава запечатана. Она открывается в полной книге.</p></div>`;
+  const [first, ...rest] = c.text;
+  return head + `<div class="story"><p class="first"><span class="dropcap">${esc(first.charAt(0))}</span>${esc(first.slice(1))}</p>${rest.map((x) => `<p>${esc(x)}</p>`).join('')}</div>`;
+}
+function marginPage(c, i) {
+  P.fresh();
+  const head = `<div class="marg-head"><span class="gl">${c.graha ? P.GLYPH[c.graha] : '✦'}</span>Поля летописца</div>`;
+  if (!isOpen(i)) return head + `<p class="epigraph" style="margin-top:16px">Здесь летописец объясняет, какое время наступает, что оно меняет и почему ${W.nom} поступает так, а не иначе.</p><div class="ghost">${'<i></i>'.repeat(8)}</div>`;
+  return head + `<div class="marg-sec"><h4>Что это за время</h4>${(c.periods || []).map(periodLine).join('')}<p>${T(c.margin.time)}</p>
+      ${effects(c) ? `<div class="chips">${effects(c)}</div>` : ''}</div>
+    <div class="marg-sec"><h4>Почему ${W.nom} ${W.acted} так</h4><p>${T(c.margin.why)}</p></div>
+    <div class="rule"><h4>Правило «если — то»</h4><p>${esc(c.margin.rule)}</p></div>`;
+}
+function titlePage() {
+  return `<div class="title-pg"><div class="ov">Книга ${W.gen}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>
+    ${shield(H)}<div class="orn">✦ ✦ ✦</div>
+    <p class="note">Писано по небу минуты рождения. Дат, времени и места рождения в книге нет — только то, что из них посчитано.</p></div>`;
+}
+function sheetPage() {
+  P.fresh();
+  const rows = H.stats.map((s) => `<button type="button" class="st" data-pop data-stat="${s.graha}"><span>${P.statLabel(esc(s.name), s.graha)}</span>
+    <span class="t"><i style="width:${s.value}%"></i><em></em></span><b>${s.value}</b></button>`).join('');
+  const u = H.ultimate;
+  return `<div class="sheet"><h2>Лист ${W.gen}</h2><p class="lead">${esc(cap(H.classAbout))}; ${esc(H.pathAbout)}.</p>
+    <div class="facts"><div><span>Класс</span><b>${esc(H.className)}</b></div><div><span>Путь</span><b>${esc(H.path)}</b></div><div><span>Стихия</span><b>${esc(H.elementName)}</b></div>
+      <div><span>Здоровье</span><b>${H.hp}</b></div><div><span>Дух</span><b>${H.mana}</b></div><div><span>Оружие</span><b>${esc(H.look.weapon)}</b></div></div>
+    <div class="statl">${rows}</div>
+    <dl><div><dt>Ульта</dt><dd>«${esc(u.name)}» — ${T(`атмакарака ${P.RU[u.graha]}`)}: ${esc(u.does)}</dd></div>
+      <div><dt>Душа</dt><dd>«${esc(H.soul.passive)}» — ${esc(H.soul.effect)} (${T(`накшатра Луны ${H.soul.nakshatra}`)})</dd></div>
+      <div><dt>Звёзды</dt><dd>${H.doubleStars.length ? `${T('Двойные звёзды')} ✦✦: ${H.doubleStars.map((g) => P.RU[g]).join(' · ')}` : 'двойных звёзд нет'}</dd></div>
+      <div><dt>Облик</dt><dd>${esc(cap(H.look.build))}; аура — ${esc(H.look.aura.colorName)}</dd></div></dl></div>`;
+}
+function tocPage() {
+  const now = nowChapter();
+  return `<div class="toc"><h2>Оглавление</h2><p class="lead" style="text-align:center;font-style:italic;color:var(--ink-2);margin:0">Пролог и пять ближайших лет — по главам</p><ol>${M.chapters.map((c, i) =>
+    `<li><button type="button" data-target="ch${i}"><span class="k">${esc(c.kicker)}</span><span class="n">${esc(c.title)}${i === now ? '<span class="now-tag">сейчас</span>' : ''}${isOpen(i) ? '' : '<span class="lock">🔒</span>'}</span><span class="y">${esc(c.years)}</span></button></li>`).join('')}
+    <li><button type="button" data-target="app"><span class="k">Приложение</span><span class="n">Умения, кто есть кто, словарик</span><span class="y"></span></button></li></ol></div>`;
+}
+function mapPage() {
+  const n = M.chapters.length, now = nowChapter();
+  const pts = M.chapters.map((_, i) => [i % 2 ? 92 : 52, 34 + i * (420 / Math.max(1, n - 1))]);
+  let d = `M${pts[0][0]} ${pts[0][1]}`;
+  for (let i = 1; i < n; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], my = (y0 + y1) / 2; d += ` C${x0} ${my} ${x1} ${my} ${x1} ${y1}`; }
+  const st2 = M.chapters.map((c, i) => {
+    const [x, y] = pts[i], right = true, open = isOpen(i);
+    return `<g><circle cx="${x}" cy="${y}" r="15" fill="${i === now ? RUB : '#f1e4c6'}" stroke="${INK}" stroke-width="1.5"/>
+      <text x="${x}" y="${y + 5}" text-anchor="middle" font-family="Forum, Georgia, serif" font-size="14" fill="${i === now ? '#fff' : INK}">${c.graha ? P.GLYPH[c.graha] : '✦'}</text>
+      <text x="128" y="${y - 2}" font-family="Forum, Georgia, serif" font-size="17" fill="${INK}">${esc(c.title)}${open ? '' : ' 🔒'}</text>
+      <text x="128" y="${y + 16}" font-family="Cormorant Garamond, Georgia, serif" font-style="italic" font-size="15" fill="${i === now ? RUB : '#5b4630'}">${esc(c.kicker)} · ${esc(c.years)}${i === now ? ' · ты здесь' : ''}</text></g>`;
+  }).join('');
+  const hills = `<path d="M330 482 l20 -18 l16 12 l22 -22 l30 28" ${thin}/>`;
+  const rose = `<g transform="translate(410 30)"><circle r="16" ${thin}/><path d="M0 -22 L4 0 L0 22 L-4 0 Z" fill="${INK}" opacity=".7"/><path d="M-22 0 L0 4 L22 0 L0 -4 Z" ${thin}/><text y="-25" text-anchor="middle" font-size="10" fill="${INK}">С</text></g>`;
+  return `<div class="map"><h2>Карта судьбы</h2><p>Дорога ${W.gen} по главам. Красная остановка — где ты сейчас.</p>
+    <svg viewBox="0 0 440 490" role="img" aria-label="Карта судьбы ${W.gen} по главам">${rose}${hills}<path d="${d}" fill="none" stroke="${INK}" stroke-width="2" stroke-dasharray="2 6" stroke-linecap="round"/>${st2}</svg></div>`;
+}
+/** «6 глав и эпилог». */
+function countWord(list) {
+  const ch = list.filter((c) => c.kicker.startsWith('Глава')).length, ep = list.some((c) => c.kicker === 'Эпилог');
+  const w = ch % 10 === 1 && ch % 100 !== 11 ? 'глава' : [2, 3, 4].includes(ch % 10) && ![12, 13, 14].includes(ch % 100) ? 'главы' : 'глав';
+  return `${ch} ${w}${ep ? ' и эпилог' : ''}`;
+}
+function sealSpread() {
+  const after = M.chapters.slice(M.free);
+  const left = `<div class="sealpg">${seal(H.name.charAt(0))}<h3>Здесь кончается вольная часть летописи</h3>
+    <p>${esc(M.chapters.slice(0, M.free).map((c) => c.kicker.toLowerCase()).join(' и '))} открыты каждому. Дальше — ${countWord(after)} о том, что ждёт ${W.acc} в ближайшие годы.</p></div>`;
+  const right = SEALED
+    ? `<div class="sealpg"><h3>Что за печатью</h3><ul>${after.map((c) => `<li><b>${esc(c.title)}</b> <i class="muted">— ${esc(c.years)}</i></li>`).join('')}</ul>
+      <p>Полная книга открывается целиком: каждая глава с полями летописца и правилом «если — то».</p></div>`
+    : `<div class="sealpg"><h3>Печать сломана</h3><p>Это книга ${W.self} — она открыта до конца. Друзьям, которые получат только вольную часть, эта страница покажет, что ждёт за печатью.</p><div class="orn">✦ ✦ ✦</div></div>`;
+  return { left, right };
+}
+function appendixA() {
+  P.fresh();
+  const all = [H.ultimate, ...H.skills];
+  const left = `<div class="app"><h2>Приложение</h2><h3>Девять умений</h3><ul>${all.map((s) => `<li><b>${P.GLYPH[s.graha]} ${esc(s.name)}</b> <span class="muted">· ${esc(s === H.ultimate ? 'ульта' : s.kindLabel)} · сила ${s.power}</span><br>${esc(s.battle)}</li>`).join('')}</ul></div>`;
+  P.fresh();
+  const right = `<div class="app"><h3>Слабости и как их обыграть</h3><ul>${H.weaknesses.length ? H.weaknesses.map((w) => `<li><b>${T(w.title)}</b> — ${esc(w.effect)}.<br><span class="muted">${esc(cap(w.counter))}.</span></li>`).join('') : '<li>Слабых мест по падению, сожжению и войне планет нет.</li>'}</ul>
+    <h3>Кто есть кто в мифе</h3><ul>${M.cast.map((c) => `<li><b>${esc(c.name)}</b> — ${c.graha ? `${P.GLYPH[c.graha]} ` : ''}${T(c.who)}</li>`).join('')}</ul></div>`;
+  return { left, right };
+}
+function appendixB() {
+  const prompts = [{ t: `Портрет ${W.gen}`, p: `${H.look.prompt} Иллюстрация в старинной книге: гравюра с акварельной подкраской, тёплый пергамент, киноварь и золото.` },
+    ...M.chapters.filter((c, i) => isOpen(i) && c.scene).map((c) => ({ t: `${c.kicker}. ${c.title}`, p: `${c.scene} Стиль: старинная книжная гравюра с акварелью, тёплый пергамент, киноварь и золото, без текста.` }))];
+  const left = `<div class="app"><h2>Словарик</h2><p class="muted" style="text-align:center;margin:0 0 6px">Всё, что подчёркнуто пунктиром, — нажми, и появится пояснение.</p>${P.glossary()}</div>`;
+  const right = `<div class="app"><h2>Для художника</h2><p class="muted" style="text-align:center;margin:0 0 6px">Промпты картин к книге — для нейросети-художника. Готовые картины встанут на место гравюр.</p>
+    ${prompts.map((x, k) => `<div class="prompt"><h3>${esc(x.t)}</h3><p id="pr${k}">${esc(x.p)}</p><button type="button" class="copy" data-copy="pr${k}">Скопировать промпт</button></div>`).join('')}
+    <p class="colophon">Посчитано программой «Джйотиш»: Swiss Ephemeris, аянамша — ${esc(D.ayanamsa)}, дома по знакам; ${esc(D.today)}. Миф — по данным ${W.gen}; числа и даты — из расчёта.</p></div>`;
+  return { left, right };
+}
+
+/* ── сборка и листание ───────────────────────────────────────────────── */
+let D;
+const blk = (cls, html, id) => `<section class="blk ${cls}"${id ? ` id="${id}"` : ''}>${html}</section>`;
+function build() {
+  let h = blk('full newpage', titlePage()) + blk('newpage', sheetPage()) + blk('newpage lstart', tocPage(), 'toc') + blk('newpage', mapPage());
+  const sealIt = () => { const x = sealSpread(); h += blk('full newpage lstart', x.left, 'seal') + blk('full newpage', x.right); };
+  M.chapters.forEach((c, i) => {
+    if (i === M.free) sealIt();
+    h += blk('newpage', storyPage(c, i), 'ch' + i) + blk('notes', marginPage(c, i));
+  });
+  if (M.free >= M.chapters.length) sealIt();
+  const a = appendixA(), b = appendixB();
+  h += blk('newpage lstart', a.left, 'app') + blk('newpage', a.right) + blk('newpage', b.left) + blk('newpage', b.right) + '<div class="end"></div>';
+  document.getElementById('flow').innerHTML = h;
+  document.getElementById('cover').innerHTML = `<div class="cover-book"><div><div class="ov">Книга ${W.gen}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>${wheel(H)}
+    <div class="ov" style="letter-spacing:.2em">${esc(H.className)} · ${esc(H.path)}</div><button type="button" class="open-btn" data-open>Открыть книгу</button></div></div>`;
+}
+const scrollMode = () => matchMedia('(max-width: 900px)').matches;
+const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Номер страницы (колонки), с которой начинается блок. */
+function colOf(el) {
+  const fr = document.getElementById('flow').getBoundingClientRect(), er = el.getBoundingClientRect();
+  return Math.max(0, Math.floor((er.left - fr.left + 2) / pw));
+}
+/** Разложить поток по страницам: размеры страницы, глава — с левой страницы (пустая страница-орнамент перед ней), подложки с номерами. */
+function layout() {
+  const flow = document.getElementById('flow');
+  flow.querySelectorAll('.filler').forEach((f) => f.remove());
+  if (scrollMode()) { pages = 0; document.getElementById('bgs').innerHTML = ''; return; }
+  const r = document.getElementById('view').getBoundingClientRect();
+  pw = r.width / 2;
+  const ph = r.height, px = Math.round(Math.max(24, Math.min(46, pw * 0.08))), py = 28, pb = 46;
+  const v = document.getElementById('book').style;
+  v.setProperty('--pw', pw + 'px'); v.setProperty('--ph', ph + 'px'); v.setProperty('--px', px + 'px');
+  v.setProperty('--py', py + 'px'); v.setProperty('--pb', pb + 'px'); v.setProperty('--ch', (ph - py - pb) + 'px');
+  for (const el of flow.querySelectorAll('.lstart')) if (colOf(el) % 2) el.insertAdjacentHTML('beforebegin', '<div class="filler" aria-hidden="true">❦</div>');
+  pages = colOf(flow.querySelector('.end'));
+  if (pages % 2) pages++;
+  document.getElementById('bgs').innerHTML = Array.from({ length: pages }, (_, i) =>
+    `<div class="bg ${i % 2 ? 'r' : 'l'}" style="left:${i * pw}px"><span class="folio">${i + 1}</span></div>`).join('');
+}
+function show(k, dir) {
+  const last = Math.max(0, pages / 2 - 1);
+  k = Math.max(-1, Math.min(last, k));
+  const was = cur;
+  cur = k;
+  document.getElementById('book').classList.toggle('closed', k < 0);
+  if (dir && k >= 0 && was >= 0 && k !== was && !reduced()) {
+    const t = document.createElement('div');
+    t.className = 'turner ' + (dir > 0 ? 'fwd' : 'back');
+    document.getElementById('view').appendChild(t);
+    setTimeout(() => t.remove(), 650);
+  }
+  document.getElementById('strip').style.transform = `translateX(${-2 * Math.max(0, k) * pw}px)`;
+  document.getElementById('prev').disabled = k < 0;
+  document.getElementById('next').disabled = k >= last;
+  document.getElementById('where').textContent = k < 0 ? 'обложка' : `стр. ${2 * k + 1}–${2 * k + 2} из ${pages}`;
+  try {
+    const gist = (location.hash.slice(1).match(/^[0-9a-f]{20,}/i) || [''])[0];
+    const tail = k < 0 ? '' : String(k);
+    history.replaceState(null, '', location.pathname + (gist ? '#' + gist + (tail ? '-' + tail : '') : tail ? '#' + tail : ''));
+  } catch (e) { /* файл без истории */ }
+}
+/** Перейти к месту в книге: разворот, где оно начинается (на телефоне — прокрутка). */
+function goTo(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (scrollMode()) { el.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' }); return; }
+  const k = Math.floor(colOf(el) / 2);
+  show(k, k >= cur ? 1 : -1);
+}
+function statPop(g) {
+  const s = H.stats.find((y) => y.graha === g);
+  if (!s) return;
+  const x2 = (r) => r.toFixed(2).replace('.', ',');
+  const nums = P.STAT[g].battle.map((n) => H.combat.numbers.find((y) => y.name === n)).filter(Boolean);
+  P.fresh();
+  P.pop(`${esc(s.name)} <small class="pl">${P.GLYPH[g]} ${P.RU[g]}</small>`, `${s.value} · ${s.value > 50 ? 'выше нормы' : s.value < 50 ? 'ниже нормы' : 'ровно норма'}`,
+    `<p>${esc(cap(s.hint))}. В жизни ${P.RU[g]} отвечает за ${P.STAT[g].life}.</p>` +
+    `<p>${T(`Откуда ${s.value}: шад-бала ${P.GEN[g]} — ${x2(s.rupa)} рупы при норме ${x2(s.required)}, то есть ×${x2(s.ratio)} нормы; ровно норма дала бы 50.`)}</p>` +
+    (nums.length ? `<table>${nums.map((n) => `<tr><td>${esc(n.name)}</td><td>${esc(n.value)}</td></tr>`).join('')}</table>` : ''));
+}
+function start(data) {
+  D = data; H = data.hero; M = data.myth; SEALED = !!data.sealed;
+  W = M.female ? { nom: 'героиня', gen: 'героини', acc: 'героиню', acted: 'поступила', self: 'самой героини' }
+    : { nom: 'герой', gen: 'героя', acc: 'героя', acted: 'поступил', self: 'самого героя' };
+  document.title = `${M.title} — Книга ${W.gen}`;
+  build();
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-open]')) { show(0, 1); return; }
+    const g = e.target.closest('[data-target]'); if (g) { goTo(g.dataset.target); return; }
+    const s = e.target.closest('[data-stat]'); if (s) { statPop(s.dataset.stat); return; }
+    const c = e.target.closest('[data-copy]');
+    if (c) {
+      const text = document.getElementById(c.dataset.copy).textContent;
+      const done = () => { c.textContent = 'Скопировано'; };
+      try { navigator.clipboard.writeText(text).then(done, () => { c.textContent = 'Выдели текст и скопируй'; }); } catch (err) { c.textContent = 'Выдели текст и скопируй'; }
+    }
+  });
+  document.getElementById('prev').addEventListener('click', () => show(cur - 1, -1));
+  document.getElementById('next').addEventListener('click', () => show(cur + 1, 1));
+  document.getElementById('toToc').addEventListener('click', () => (cur < 0 ? (show(0, 1), goTo('toc')) : goTo('toc')));
+  document.addEventListener('keydown', (e) => {
+    if (scrollMode() || e.target.closest('input, textarea')) return;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(cur + 1, 1); }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(cur - 1, -1); }
+  });
+  // свайп по книге (планшет)
+  let sx = null;
+  const view = document.getElementById('view');
+  view.addEventListener('pointerdown', (e) => { sx = e.clientX; });
+  view.addEventListener('pointerup', (e) => { if (sx !== null && !scrollMode() && Math.abs(e.clientX - sx) > 60) show(cur + (e.clientX < sx ? 1 : -1), e.clientX < sx ? 1 : -1); sx = null; });
+  let rt = 0;
+  const relayout = () => { const k = cur; layout(); show(k, 0); };
+  addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(relayout, 150); });
+  layout();
+  const hk = location.hash.slice(1), part = /^[0-9a-f]{20,}/i.test(hk) ? (hk.split('-')[1] || '') : hk, k = Number(part);
+  show(part !== '' && Number.isInteger(k) && k >= 0 ? k : -1, 0);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(relayout);
+}
+(async () => {
+  const id = location.hash.slice(1).split('-')[0].replace(/[^0-9a-f]/gi, '');
+  const cover = document.getElementById('cover');
+  const say = (t) => { cover.innerHTML = '<div class="cover-book"><div><div class="ov">Книга героя</div><h1 style="font-size:34px">' + t + '</h1></div></div>'; };
+  if (!id) { say('Откройте ссылку на книгу — её присылает тот, кто написал книгу в программе «Джйотиш»'); return; }
+  say('Книга загружается…');
+  try {
+    const r = await fetch('https://api.github.com/gists/' + id);
+    if (!r.ok) throw new Error('gist ' + r.status);
+    const g = await r.json();
+    const f = g.files['book.json'];
+    const text = f.truncated ? await (await fetch(f.raw_url)).text() : f.content;
+    history.replaceState(null, '', location.pathname + '#' + id);
+    start(JSON.parse(text));
+  } catch (e) {
+    say('Книга не найдена. Проверьте ссылку или откройте её позже: GitHub отвечает не на все запросы подряд');
+  }
+})();
+</script>
+</body></html>
