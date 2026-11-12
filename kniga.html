@@ -518,6 +518,9 @@ const ART = {
   fan: () => frame(`${Array.from({ length: 11 }, (_, i) => { const a = (195 + i * 15) * Math.PI / 180; return `<path d="M110 86 L${(110 + 58 * Math.cos(a)).toFixed(1)} ${(86 + 58 * Math.sin(a)).toFixed(1)}" ${st}/>`; }).join('')}
     <path d="M${(110 + 58 * Math.cos(195 * Math.PI / 180)).toFixed(1)} ${(86 + 58 * Math.sin(195 * Math.PI / 180)).toFixed(1)} A58 58 0 0 1 ${(110 + 58 * Math.cos(345 * Math.PI / 180)).toFixed(1)} ${(86 + 58 * Math.sin(345 * Math.PI / 180)).toFixed(1)}" fill="${GOLD}" fill-opacity=".18" ${st}/>
     <path d="M40 104 q12 -7 24 0 t24 0 t24 0 t24 0 t24 0 t24 0" ${thin}/><path d="M110 86 V100" stroke-width="3" ${st}/>`),
+  roots: () => frame(`<path d="M98 26 h24 v12 h-24 z" fill="${GOLD}" fill-opacity=".35" ${st}/><path d="M102 26 q-3 -10 4 -16 M118 26 q3 -10 -4 -16 M110 26 v-14" ${st}/>
+    ${[[-44, 104], [-28, 110], [-12, 112], [4, 112], [20, 108], [36, 102], [50, 92]].map(([dx, y]) => `<path d="M110 38 Q${110 + dx * .35} ${(38 + y) / 2} ${110 + dx} ${y}" ${st}/>`).join('')}
+    <path d="M40 112 H180" ${thin}/>`),
   sickle: () => frame(`<path d="M86 96 C60 70 70 26 116 18 C92 34 86 62 104 84 Z" fill="#c9ced8" fill-opacity=".55" ${st}/><path d="M104 84 L116 106" ${st} stroke-width="3.2"/>
     ${[132, 146, 160].map((x, k) => `<path d="M${x} 108 Q${x - 2} 70 ${x + 4} ${40 + k * 6}" ${thin}/>${[0, 1, 2, 3].map((j) => `<ellipse cx="${x + 3 - j * .5}" cy="${48 + k * 6 + j * 9}" rx="2.4" ry="4.5" transform="rotate(${j % 2 ? 25 : -25} ${x + 3 - j * .5} ${48 + k * 6 + j * 9})" ${thin}/>`).join('')}`).join('')}
     <path d="M40 108 H180" ${thin}/>`),
@@ -549,6 +552,12 @@ const EMBLEM = {
     <path d="M104 36 l2 -6 4 4 4 -4 2 6 z" fill="${GOLD}" fill-opacity=".5" ${st}/>`,
   'ножки ложа': () => `<path d="M80 74 H140 V84 H80 Z" fill="${GOLD}" fill-opacity=".25" ${st}/><path d="M80 74 V56 Q80 50 86 50 Q92 50 92 56 V74 M134 74 V62 Q134 56 140 56 V84" ${st}/>
     <path d="M84 84 l-3 18 M136 84 l3 18 M98 84 v12 M122 84 v12" stroke-width="2.2" ${st}/><path d="M96 74 q6 -8 14 -6 q6 2 4 6" ${st}/>`,
+  'змей глубин': () => `<path d="M80 96 q10 -6 20 0 t20 0 t20 0" ${thin}/><path d="M84 104 q10 -6 20 0 t20 0 t16 0" ${thin}/>
+    <path d="M110 86 C86 86 86 60 110 60 C130 60 130 78 112 78 C100 78 100 68 110 68" stroke-width="2.6" ${st}/>
+    <path d="M110 86 C134 86 136 52 118 44" stroke-width="2.6" ${st}/><ellipse cx="114" cy="40" rx="7" ry="4.5" transform="rotate(-30 114 40)" ${st}/><circle cx="116" cy="38" r="1.2" fill="${RUB}"/>`,
+  'связка корней': () => `<path d="M100 40 h20 v10 h-20 z" fill="${GOLD}" fill-opacity=".35" ${st}/><path d="M104 40 q-2 -8 4 -12 M116 40 q2 -8 -4 -12 M110 40 v-12" ${st}/>
+    ${[[-24, 96], [-14, 104], [-4, 108], [6, 106], [16, 100], [26, 92]].map(([dx, y]) => `<path d="M110 50 Q${110 + dx * .4} ${(50 + y) / 2} ${110 + dx} ${y}" ${st}/>`).join('')}
+    <path d="M90 92 q-4 4 -8 3 M128 90 q4 3 8 1 M104 100 q-3 5 -7 5" ${thin}/>`,
   'веер': () => `${Array.from({ length: 9 }, (_, i) => { const a = (200 + i * 17.5) * Math.PI / 180; return `<path d="M110 92 L${(110 + 34 * Math.cos(a)).toFixed(1)} ${(92 + 34 * Math.sin(a)).toFixed(1)}" ${st}/>`; }).join('')}
     <path d="M${(110 + 34 * Math.cos(200 * Math.PI / 180)).toFixed(1)} ${(92 + 34 * Math.sin(200 * Math.PI / 180)).toFixed(1)} A34 34 0 0 1 ${(110 + 34 * Math.cos(340 * Math.PI / 180)).toFixed(1)} ${(92 + 34 * Math.sin(340 * Math.PI / 180)).toFixed(1)}" fill="${GOLD}" fill-opacity=".18" ${st}/>
     <path d="M110 92 V104" stroke-width="3" ${st}/><circle cx="110" cy="92" r="3" fill="${INK}"/>`,
