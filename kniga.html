@@ -524,6 +524,10 @@ const ART = {
   talisman: () => frame(`<path d="M78 16 Q110 48 142 16" ${thin}/><circle cx="110" cy="66" r="30" fill="${GOLD}" fill-opacity=".22" ${st}/><circle cx="110" cy="66" r="20" ${st}/>
     <path d="M110 48 L114 62 L128 66 L114 70 L110 84 L106 70 L92 66 L106 62 Z" fill="${RUB}" fill-opacity=".65" ${st}/><path d="M110 36 V30" ${st}/>
     ${rays(110, 66, 34, 42, 20, 160, 7)}<path d="M50 96 l10 -14 l6 6 l8 -16 l8 12" ${thin}/><path d="M146 96 l8 -12 l8 8 l6 -10 l10 14" ${thin}/>`),
+  lotus: () => frame(`<path d="M110 22 C96 42 96 68 110 84 C124 68 124 42 110 22 Z" fill="${GOLD}" fill-opacity=".3" ${st}/>
+    <path d="M110 84 C88 80 78 58 80 40 C94 48 106 66 110 84 Z M110 84 C132 80 142 58 140 40 C126 48 114 66 110 84 Z" fill="${GOLD}" fill-opacity=".18" ${st}/>
+    <path d="M110 84 C84 90 66 78 60 64 C78 62 96 72 110 84 Z M110 84 C136 90 154 78 160 64 C142 62 124 72 110 84 Z" ${st}/>
+    <path d="M40 100 q12 -7 24 0 t24 0 t24 0 t24 0 t24 0 t24 0" ${thin}/><path d="M52 110 q12 -6 24 0 t24 0 t24 0 t24 0 t24 0" ${thin}/>`),
   sickle: () => frame(`<path d="M86 96 C60 70 70 26 116 18 C92 34 86 62 104 84 Z" fill="#c9ced8" fill-opacity=".55" ${st}/><path d="M104 84 L116 106" ${st} stroke-width="3.2"/>
     ${[132, 146, 160].map((x, k) => `<path d="M${x} 108 Q${x - 2} 70 ${x + 4} ${40 + k * 6}" ${thin}/>${[0, 1, 2, 3].map((j) => `<ellipse cx="${x + 3 - j * .5}" cy="${48 + k * 6 + j * 9}" rx="2.4" ry="4.5" transform="rotate(${j % 2 ? 25 : -25} ${x + 3 - j * .5} ${48 + k * 6 + j * 9})" ${thin}/>`).join('')}`).join('')}
     <path d="M40 108 H180" ${thin}/>`),
@@ -564,6 +568,10 @@ const EMBLEM = {
   'талисман': () => `<path d="M90 30 Q110 52 130 30" ${thin}/><circle cx="110" cy="72" r="22" fill="${GOLD}" fill-opacity=".25" ${st}/><circle cx="110" cy="72" r="14" ${st}/>
     <path d="M110 60 L113 69 L122 72 L113 75 L110 84 L107 75 L98 72 L107 69 Z" fill="${RUB}" fill-opacity=".7" ${st}/><path d="M110 50 V44" ${st}/><circle cx="110" cy="42" r="3" ${st}/>
     <path d="M104 94 l6 10 l6 -10" ${st}/>`,
+  'лотос': () => `<path d="M110 44 C100 58 100 76 110 88 C120 76 120 58 110 44 Z" fill="${GOLD}" fill-opacity=".3" ${st}/>
+    <path d="M110 88 C94 84 86 68 88 54 C98 60 106 74 110 88 Z M110 88 C126 84 134 68 132 54 C122 60 114 74 110 88 Z" fill="${GOLD}" fill-opacity=".18" ${st}/>
+    <path d="M110 88 C92 92 80 82 76 72 C88 72 100 80 110 88 Z M110 88 C128 92 140 82 144 72 C132 72 120 80 110 88 Z" ${st}/>
+    <path d="M80 100 q10 -6 20 0 t20 0 t20 0" ${thin}/>`,
   'веер': () => `${Array.from({ length: 9 }, (_, i) => { const a = (200 + i * 17.5) * Math.PI / 180; return `<path d="M110 92 L${(110 + 34 * Math.cos(a)).toFixed(1)} ${(92 + 34 * Math.sin(a)).toFixed(1)}" ${st}/>`; }).join('')}
     <path d="M${(110 + 34 * Math.cos(200 * Math.PI / 180)).toFixed(1)} ${(92 + 34 * Math.sin(200 * Math.PI / 180)).toFixed(1)} A34 34 0 0 1 ${(110 + 34 * Math.cos(340 * Math.PI / 180)).toFixed(1)} ${(92 + 34 * Math.sin(340 * Math.PI / 180)).toFixed(1)}" fill="${GOLD}" fill-opacity=".18" ${st}/>
     <path d="M110 92 V104" stroke-width="3" ${st}/><circle cx="110" cy="92" r="3" fill="${INK}"/>`,
