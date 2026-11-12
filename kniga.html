@@ -536,13 +536,28 @@ const shieldWeapon = (g) => ({
   ve: () => `<path d="M100 28 Q132 64 100 100" stroke-width="2.4" ${st}/><path d="M100 28 V100" ${thin}/><path d="M90 64 H130 M130 64 l-6 -4 M130 64 l-6 4" ${st}/>`,
   sa: () => `<path d="M110 50 V104" stroke-width="3.2" ${st}/><path d="M94 34 H126 V50 H94 Z" fill="#9a9184" fill-opacity=".6" ${st}/>`,
 }[g] || (() => `<path d="M110 28 L115 38 V80 H105 V38 Z" fill="#d9d4c8" ${st}/><path d="M96 82 H124" stroke-width="3" ${st}/><path d="M107 84 H113 V98 H107 Z" ${st}/><circle cx="110" cy="101" r="3" ${st}/>`))();
+/** Эмблема в щите — символ накшатры лагны (как «эмблема на доспехе» у героя); нарисованы символы наших книг, остальные — звездой. */
+const EMBLEM = {
+  'триумфальная арка': () => `<path d="M84 34 H136 M88 40 H132" ${st}/><path d="M92 104 V58 A18 18 0 0 1 128 58 V104" ${st}/><path d="M86 104 V40 M134 104 V40" ${st}/>
+    <path d="M99 104 V60 A11 11 0 0 1 121 60 V104" ${thin}/><path d="M80 104 H140" ${st}/>`,
+  'врата рождения': () => `<path d="M88 104 V60 A22 22 0 0 1 132 60 V104" ${st}/><path d="M110 38 V104" ${st}/><circle cx="105" cy="76" r="2.4" ${st}/><circle cx="115" cy="76" r="2.4" ${st}/>
+    <path d="M94 66 H105 M115 66 H126 M94 88 H105 M115 88 H126" ${thin}/><path d="M82 104 H138" ${st}/>${rays(110, 60, 26, 32, 205, 335, 7)}`,
+  'трон': () => `<path d="M96 86 V44 Q110 30 124 44 V86" ${st}/><path d="M90 86 H130 V94 H90 Z" fill="${GOLD}" fill-opacity=".3" ${st}/><path d="M93 94 V108 M127 94 V108 M88 74 H98 M122 74 H132" ${st}/>
+    <path d="M104 36 l2 -6 4 4 4 -4 2 6 z" fill="${GOLD}" fill-opacity=".5" ${st}/>`,
+  'ножки ложа': () => `<path d="M80 74 H140 V84 H80 Z" fill="${GOLD}" fill-opacity=".25" ${st}/><path d="M80 74 V56 Q80 50 86 50 Q92 50 92 56 V74 M134 74 V62 Q134 56 140 56 V84" ${st}/>
+    <path d="M84 84 l-3 18 M136 84 l3 18 M98 84 v12 M122 84 v12" stroke-width="2.2" ${st}/><path d="M96 74 q6 -8 14 -6 q6 2 4 6" ${st}/>`,
+  'ложе': () => `<path d="M80 74 H140 V84 H80 Z" fill="${GOLD}" fill-opacity=".25" ${st}/><path d="M80 74 V56 Q80 50 86 50 Q92 50 92 56 V74" ${st}/><path d="M96 74 q8 -10 18 -8 q8 2 6 8 M118 74 q6 -6 12 -5" ${st}/>
+    <path d="M84 84 v14 M136 84 v14" ${st}/>`,
+};
+const emblemArt = (sym) => (EMBLEM[sym] || (() => `<path d="M110 40 L116 58 L134 64 L116 70 L110 88 L104 70 L86 64 L104 58 Z" fill="${GOLD}" fill-opacity=".4" ${st}/>`))();
 function shield(h) {
   const stars = h.doubleStars.map((g, i) => { const x = 70 + i * (80 / Math.max(1, h.doubleStars.length - 1 || 1)); return `<path transform="translate(${h.doubleStars.length === 1 ? 110 : x.toFixed(1)} 136)" d="M0 -6 l1.8 4 4.2 .4 -3.2 2.8 1 4.2 -3.8 -2.2 -3.8 2.2 1 -4.2 -3.2 -2.8 4.2 -.4z" fill="${GOLD}"/>`; }).join('');
-  return `<svg viewBox="0 0 220 150" role="img" aria-label="Герб ${W.gen}">
-    <path d="M60 24 A50 50 0 0 1 160 24" ${thin}/>
-    <path d="M70 22 H150 V66 Q150 104 110 120 Q70 104 70 66 Z" fill="${h.colors[0]}" fill-opacity=".22" stroke="${INK}" stroke-width="1.8"/>
-    <path d="M70 22 L150 100" ${thin}/>${shieldWeapon(h.look.aura.graha)}
-    <circle cx="110" cy="12" r="9" fill="${GOLD}" fill-opacity=".25" stroke="${INK}"/><text x="110" y="17" text-anchor="middle" font-size="13" fill="${INK}">${P.GLYPH[h.ultimate.graha]}</text>${stars}</svg>`;
+  const SH = 'M70 22 H150 V66 Q150 104 110 120 Q70 104 70 66 Z';
+  return `<svg viewBox="0 0 220 150" role="img" aria-label="Герб ${W.gen}: ${esc(h.emblem.symbol)}, оружие — ${esc(h.look.weapon)}">
+    <g transform="rotate(-38 110 66) translate(110 66) scale(1.7) translate(-110 -66)">${shieldWeapon(h.look.aura.graha)}</g>
+    <path d="${SH}" fill="#f1e4c6"/><path d="${SH}" fill="${h.colors[0]}" fill-opacity=".22" stroke="${INK}" stroke-width="1.8"/>
+    ${emblemArt(h.emblem.symbol)}
+    <circle cx="110" cy="12" r="9" fill="#f1e4c6" stroke="${INK}"/><circle cx="110" cy="12" r="9" fill="${GOLD}" fill-opacity=".25" stroke="${INK}"/><text x="110" y="17" text-anchor="middle" font-size="13" fill="${INK}">${P.GLYPH[h.ultimate.graha]}</text>${stars}</svg>`;
 }
 function wheel(h) {
   let dots = '';
