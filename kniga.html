@@ -699,7 +699,7 @@ function countWord(list) {
 function sealSpread() {
   const after = M.chapters.slice(M.free);
   const left = `<div class="sealpg">${seal(H.name.charAt(0))}<h3>Здесь кончается вольная часть летописи</h3>
-    <p>${esc(M.chapters.slice(0, M.free).map((c) => c.kicker.toLowerCase()).join(' и '))} открыты каждому. Дальше — ${countWord(after)} о том, что ждёт ${W.acc} в ближайшие годы.</p></div>`;
+    <p>${esc(cap(M.chapters.slice(0, M.free).map((c) => c.kicker.charAt(0).toLowerCase() + c.kicker.slice(1)).join(' и ')))} открыты каждому. Дальше — ${countWord(after)} о том, что ждёт ${W.acc} в ближайшие годы.</p></div>`;
   const right = SEALED
     ? `<div class="sealpg"><h3>Что за печатью</h3><ul>${after.map((c) => `<li><b>${esc(c.title)}</b> <i class="muted">— ${esc(c.years)}</i></li>`).join('')}</ul>
       <p>Полная книга открывается целиком: каждая глава с полями летописца и правилом «если — то».</p></div>`
