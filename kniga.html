@@ -528,6 +528,10 @@ const ART = {
     <path d="M110 84 C88 80 78 58 80 40 C94 48 106 66 110 84 Z M110 84 C132 80 142 58 140 40 C126 48 114 66 110 84 Z" fill="${GOLD}" fill-opacity=".18" ${st}/>
     <path d="M110 84 C84 90 66 78 60 64 C78 62 96 72 110 84 Z M110 84 C136 90 154 78 160 64 C142 62 124 72 110 84 Z" ${st}/>
     <path d="M40 100 q12 -7 24 0 t24 0 t24 0 t24 0 t24 0 t24 0" ${thin}/><path d="M52 110 q12 -6 24 0 t24 0 t24 0 t24 0 t24 0" ${thin}/>`),
+  sky: () => frame(`<circle cx="110" cy="60" r="48" ${st}/><circle cx="110" cy="60" r="38" ${thin}/>
+    ${Array.from({ length: 27 }, (_, i) => { const a = i / 27 * Math.PI * 2 - Math.PI / 2; return `<circle cx="${(110 + 43 * Math.cos(a)).toFixed(1)}" cy="${(60 + 43 * Math.sin(a)).toFixed(1)}" r="1.5" fill="${GOLD}"/>`; }).join('')}
+    ${['☉', '☽', '♂', '☿', '♃', '♀', '♄', '☊', '☋'].map((g, i) => { const a = i / 9 * Math.PI * 2 - Math.PI / 2; return `<text x="${(110 + 26 * Math.cos(a)).toFixed(1)}" y="${(64 + 26 * Math.sin(a)).toFixed(1)}" text-anchor="middle" font-size="10" fill="${INK}">${g}</text>`; }).join('')}
+    <circle cx="110" cy="60" r="6" fill="${GOLD}" fill-opacity=".5" ${st}/>`),
   sickle: () => frame(`<path d="M86 96 C60 70 70 26 116 18 C92 34 86 62 104 84 Z" fill="#c9ced8" fill-opacity=".55" ${st}/><path d="M104 84 L116 106" ${st} stroke-width="3.2"/>
     ${[132, 146, 160].map((x, k) => `<path d="M${x} 108 Q${x - 2} 70 ${x + 4} ${40 + k * 6}" ${thin}/>${[0, 1, 2, 3].map((j) => `<ellipse cx="${x + 3 - j * .5}" cy="${48 + k * 6 + j * 9}" rx="2.4" ry="4.5" transform="rotate(${j % 2 ? 25 : -25} ${x + 3 - j * .5} ${48 + k * 6 + j * 9})" ${thin}/>`).join('')}`).join('')}
     <path d="M40 108 H180" ${thin}/>`),
@@ -648,6 +652,21 @@ function marginPage(c, i) {
     <div class="marg-sec"><h4>Почему ${W.nom} ${W.acted} так</h4><p>${T(c.margin.why)}</p></div>
     <div class="rule"><h4>Правило «если — то»</h4><p>${esc(c.margin.rule)}</p></div>`;
 }
+/** «Начало мира» — общий лор перед прологом героя, и «ключ к миру»: что чему соответствует в джйотише. */
+function lorePage() {
+  const L = M.lore;
+  P.fresh();
+  const [first, ...rest] = L.text;
+  return `<div class="ch-head"><div class="kicker">Начало мира</div><h2 class="ch-title">${esc(L.title)}</h2>
+      <figure class="headpiece">${(ART[L.art] || ART.sky)()}</figure><p class="epigraph">«${esc(L.epigraph)}»</p></div>
+    <div class="story"><p class="first"><span class="dropcap">${esc(first.charAt(0))}</span>${esc(first.slice(1))}</p>${rest.map((x) => `<p>${esc(x)}</p>`).join('')}</div>`;
+}
+function loreKey() {
+  P.fresh();
+  return `<div class="marg-head"><span class="gl">✦</span>Ключ к миру</div>
+    <p class="epigraph" style="margin:6px 0 10px">Что в этом мире соответствует чему в джйотише</p>
+    <div class="app"><ul>${M.lore.key.map((k) => `<li>${T(k)}</li>`).join('')}</ul></div>`;
+}
 function titlePage() {
   return `<div class="title-pg"><div class="ov">Книга ${W.gen}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>
     ${shield(H)}<div class="orn">✦ ✦ ✦</div>
@@ -669,7 +688,7 @@ function sheetPage() {
 }
 function tocPage() {
   const now = nowChapter();
-  return `<div class="toc"><h2>Оглавление</h2><p class="lead" style="text-align:center;font-style:italic;color:var(--ink-2);margin:0">Пролог и пять ближайших лет — по главам</p><ol>${M.chapters.map((c, i) =>
+  return `<div class="toc"><h2>Оглавление</h2><p class="lead" style="text-align:center;font-style:italic;color:var(--ink-2);margin:0">Пролог и пять ближайших лет — по главам</p><ol>${M.lore ? `<li><button type="button" data-target="lore"><span class="k">Начало</span><span class="n">${esc(M.lore.title)}</span><span class="y">мир</span></button></li>` : ''}${M.chapters.map((c, i) =>
     `<li><button type="button" data-target="ch${i}"><span class="k">${esc(c.kicker)}</span><span class="n">${esc(c.title)}${i === now ? '<span class="now-tag">сейчас</span>' : ''}${isOpen(i) ? '' : '<span class="lock">🔒</span>'}</span><span class="y">${esc(c.years)}</span></button></li>`).join('')}
     <li><button type="button" data-target="app"><span class="k">Приложение</span><span class="n">Умения, кто есть кто, словарик</span><span class="y"></span></button></li></ol></div>`;
 }
@@ -729,7 +748,7 @@ function appendixB() {
 let D;
 const blk = (cls, html, id) => `<section class="blk ${cls}"${id ? ` id="${id}"` : ''}>${html}</section>`;
 function build() {
-  let h = blk('full newpage', titlePage()) + blk('newpage', sheetPage()) + blk('newpage lstart', tocPage(), 'toc') + blk('newpage', mapPage());
+  let h = (M.lore ? blk('newpage', lorePage(), 'lore') + blk('notes', loreKey()) : '') + blk('full newpage', titlePage()) + blk('newpage', sheetPage()) + blk('newpage lstart', tocPage(), 'toc') + blk('newpage', mapPage());
   const sealIt = () => { const x = sealSpread(); h += blk('full newpage lstart', x.left, 'seal') + blk('full newpage', x.right); };
   M.chapters.forEach((c, i) => {
     if (i === M.free) sealIt();
