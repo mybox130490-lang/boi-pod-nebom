@@ -683,7 +683,8 @@ function sheetPage() {
     <dl><div><dt>Ульта</dt><dd>«${esc(u.name)}» — ${T(`атмакарака ${P.RU[u.graha]}`)}: ${esc(u.does)}</dd></div>
       <div><dt>Душа</dt><dd>«${esc(H.soul.passive)}» — ${esc(H.soul.effect)} (${T(`накшатра Луны ${H.soul.nakshatra}`)})</dd></div>
       <div><dt>Звёзды</dt><dd>${H.doubleStars.length ? `${T('Двойные звёзды')} ✦✦: ${H.doubleStars.map((g) => P.RU[g]).join(' · ')}` : 'двойных звёзд нет'}</dd></div>
-      <div><dt>Облик</dt><dd>${esc(cap(H.look.build))}; аура — ${esc(H.look.aura.colorName)}</dd></div></dl></div>`;
+      ${H.look.portrait ? H.look.portrait.lines.map(([t, v]) => `<div><dt>${esc(t)}</dt><dd>${esc(v)}</dd></div>`).join('') + `<div><dt>Аура</dt><dd>${esc(H.look.aura.colorName)}</dd></div>`
+        : `<div><dt>Облик</dt><dd>${esc(cap(H.look.build))}; аура — ${esc(H.look.aura.colorName)}</dd></div>`}</dl></div>`;
 }
 function tocPage() {
   const now = nowChapter();
@@ -754,6 +755,7 @@ function appendixA() {
 }
 function appendixB() {
   const prompts = [{ t: `Портрет ${W.gen}`, p: `${H.look.prompt} Иллюстрация в старинной книге: гравюра с акварельной подкраской, тёплый пергамент, киноварь и золото.` },
+    ...(H.look.portrait ? [{ t: 'Лист персонажа', p: H.look.portrait.sheet }] : []),
     ...M.chapters.filter((c, i) => isOpen(i) && c.scene).map((c) => ({ t: `${c.kicker}. ${c.title}`, p: `${c.scene} Стиль: старинная книжная гравюра с акварелью, тёплый пергамент, киноварь и золото, без текста.` }))];
   const left = `<div class="app"><h2>Словарик</h2><p class="muted" style="text-align:center;margin:0 0 6px">Всё, что подчёркнуто пунктиром, — нажми, и появится пояснение.</p>${P.glossary()}</div>`;
   const right = `<div class="app"><h2>Для художника</h2><p class="muted" style="text-align:center;margin:0 0 6px">Промпты картин к книге — для нейросети-художника. Готовые картины встанут на место гравюр.</p>
