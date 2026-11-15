@@ -719,7 +719,10 @@ function freeWord(list) {
 function teaserSpread() {
   const toc = D.fullToc || [];
   const buy = /^https:\/\/t\.me\//.test(D.buy) ? `<a class="buy-btn" href="${esc(D.buy)}" target="_blank" rel="noopener">Открыть полную летопись в колизее</a>` : '';
-  const left = `<div class="sealpg">${seal(H.name.charAt(0))}<h3>Здесь кончается краткая летопись</h3>
+  const left = D.edition === 'fragment'
+    ? `<div class="sealpg">${seal(H.name.charAt(0))}<h3>Здесь кончается фрагмент</h3>
+    <p>Это одна глава — та, что идёт у ${W.gen} сейчас. Полная летопись рассказывает всю жизнь: главы о прошлом, чтобы узнать себя, то, что идёт сейчас, и годы впереди — каждая с полями летописца и правилом «если — то».</p></div>`
+    : `<div class="sealpg">${seal(H.name.charAt(0))}<h3>Здесь кончается краткая летопись</h3>
     <p>Это главные вехи ${W.gen} — коротко. Полная летопись рассказывает ту же жизнь подробно: главы о прошлом, чтобы узнать себя, то, что идёт сейчас, и годы впереди — каждая с полями летописца и правилом «если — то».</p></div>`;
   const right = `<div class="sealpg"><h3>Полная летопись</h3>${toc.length ? `<ul>${toc.map((c) => `<li><b>${esc(c.title)}</b> <i class="muted">— ${esc(c.kicker)}${c.years && c.years !== 'начало' ? `, ${esc(c.years)}` : ''}</i></li>`).join('')}</ul>` : ''}${buy}</div>`;
   return { left, right };
@@ -755,13 +758,15 @@ function appendixB() {
 }
 
 /** « · краткая летопись» / « · полная летопись» — какая это редакция (с 15.11.2026). */
-const edWord = () => (D.edition === 'full' ? ' · полная летопись' : D.edition === 'short' ? ' · краткая летопись' : '');
+const edWord = () => (D.edition === 'full' ? ' · полная летопись' : D.edition === 'short' ? ' · краткая летопись' : D.edition === 'fragment' ? ' · фрагмент летописи' : '');
 
 /* ── сборка и листание ───────────────────────────────────────────────── */
 let D;
 const blk = (cls, html, id) => `<section class="blk ${cls}"${id ? ` id="${id}"` : ''}>${html}</section>`;
 function build() {
-  let h = (M.lore ? blk('newpage', lorePage(), 'lore') + blk('notes', loreKey()) : '') + blk('full newpage', titlePage()) + blk('newpage', sheetPage()) + blk('newpage lstart', tocPage(), 'toc') + blk('newpage', mapPage());
+  const frag = D.edition === 'fragment';
+  let h = frag ? blk('full newpage', titlePage()) + blk('newpage', sheetPage())
+    : (M.lore ? blk('newpage', lorePage(), 'lore') + blk('notes', loreKey()) : '') + blk('full newpage', titlePage()) + blk('newpage', sheetPage()) + blk('newpage lstart', tocPage(), 'toc') + blk('newpage', mapPage());
   const teaser = !SEALED && !!D.buy;
   const sealIt = () => { const x = teaser ? teaserSpread() : sealSpread(); h += blk('full newpage lstart', x.left, 'seal') + blk('full newpage', x.right); };
   M.chapters.forEach((c, i) => {
@@ -769,8 +774,9 @@ function build() {
     h += blk('newpage', storyPage(c, i), 'ch' + i) + blk('notes', marginPage(c, i));
   });
   if (teaser) sealIt();
-  const a = appendixA(), b = appendixB();
-  h += blk('newpage lstart', a.left, 'app') + blk('newpage', a.right) + blk('newpage', b.left) + blk('newpage', b.right) + '<div class="end"></div>';
+  if (!frag) { const a = appendixA(), b = appendixB(); h += blk('newpage lstart', a.left, 'app') + blk('newpage', a.right) + blk('newpage', b.left) + blk('newpage', b.right); }
+  h += '<div class="end"></div>';
+  document.getElementById('toToc').hidden = frag;
   document.getElementById('flow').innerHTML = h;
   document.getElementById('cover').innerHTML = `<div class="cover-book"><div><div class="ov">Книга ${W.gen}${edWord()}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>${wheel(H)}
     <div class="ov" style="letter-spacing:.2em">${esc(H.className)} · ${esc(H.path)}</div><button type="button" class="open-btn" data-open>Открыть книгу</button></div></div>`;
@@ -845,7 +851,7 @@ function start(data) {
   D = data; H = data.hero; M = data.myth; SEALED = !!data.sealed;
   W = M.female ? { nom: 'героиня', gen: 'героини', acc: 'героиню', acted: 'поступила', self: 'самой героини' }
     : { nom: 'герой', gen: 'героя', acc: 'героя', acted: 'поступил', self: 'самого героя' };
-  document.title = `${M.title} — ${D.edition === 'full' ? 'полная летопись' : D.edition === 'short' ? 'краткая летопись' : `Книга ${W.gen}`}`;
+  document.title = `${M.title} — ${D.edition === 'full' ? 'полная летопись' : D.edition === 'short' ? 'краткая летопись' : D.edition === 'fragment' ? 'фрагмент летописи' : `Книга ${W.gen}`}`;
   build();
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-open]')) { show(0, 1); return; }
