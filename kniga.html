@@ -662,7 +662,7 @@ function loreKey() {
     <div class="app"><ul>${M.lore.key.map((k) => `<li>${T(k)}</li>`).join('')}</ul></div>`;
 }
 function titlePage() {
-  return `<div class="title-pg"><div class="ov">Книга ${W.gen}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>
+  return `<div class="title-pg"><div class="ov">Книга ${W.gen}${edWord()}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>
     ${shield(H)}<div class="orn">✦ ✦ ✦</div>
     <p class="note">Писано по небу минуты рождения. Дат, времени и места рождения в книге нет — только то, что из них посчитано.</p></div>`;
 }
@@ -754,6 +754,9 @@ function appendixB() {
   return { left, right };
 }
 
+/** « · краткая летопись» / « · полная летопись» — какая это редакция (с 15.11.2026). */
+const edWord = () => (D.edition === 'full' ? ' · полная летопись' : D.edition === 'short' ? ' · краткая летопись' : '');
+
 /* ── сборка и листание ───────────────────────────────────────────────── */
 let D;
 const blk = (cls, html, id) => `<section class="blk ${cls}"${id ? ` id="${id}"` : ''}>${html}</section>`;
@@ -769,7 +772,7 @@ function build() {
   const a = appendixA(), b = appendixB();
   h += blk('newpage lstart', a.left, 'app') + blk('newpage', a.right) + blk('newpage', b.left) + blk('newpage', b.right) + '<div class="end"></div>';
   document.getElementById('flow').innerHTML = h;
-  document.getElementById('cover').innerHTML = `<div class="cover-book"><div><div class="ov">Книга ${W.gen}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>${wheel(H)}
+  document.getElementById('cover').innerHTML = `<div class="cover-book"><div><div class="ov">Книга ${W.gen}${edWord()}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>${wheel(H)}
     <div class="ov" style="letter-spacing:.2em">${esc(H.className)} · ${esc(H.path)}</div><button type="button" class="open-btn" data-open>Открыть книгу</button></div></div>`;
 }
 /** Телефон: по одной странице на экран (на большом экране — разворот из двух). */
@@ -842,7 +845,7 @@ function start(data) {
   D = data; H = data.hero; M = data.myth; SEALED = !!data.sealed;
   W = M.female ? { nom: 'героиня', gen: 'героини', acc: 'героиню', acted: 'поступила', self: 'самой героини' }
     : { nom: 'герой', gen: 'героя', acc: 'героя', acted: 'поступил', self: 'самого героя' };
-  document.title = `${M.title} — Книга ${W.gen}`;
+  document.title = `${M.title} — ${D.edition === 'full' ? 'полная летопись' : D.edition === 'short' ? 'краткая летопись' : `Книга ${W.gen}`}`;
   build();
   document.addEventListener('click', (e) => {
     if (e.target.closest('[data-open]')) { show(0, 1); return; }
