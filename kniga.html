@@ -205,7 +205,8 @@ html body .pop-x { color: var(--ink); border-color: rgba(43, 29, 16, .35); }
   .cover-book { width: 100%; padding: 28px 20px; border-radius: 6px; }
   .cover-book h1 { font-size: clamp(30px, 9vw, 44px); }
   .cover-book svg.emb { width: min(200px, 56%); }
-  .nav { padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
+  .nav { padding: 8px 10px calc(12px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
+  .view { touch-action: pan-y pinch-zoom; }
   .nav .where { min-width: 92px; font-size: 13.5px; }
   .st { grid-template-columns: 150px minmax(0, 1fr) 28px; }
   .facts b { font-size: 17px; }
@@ -880,9 +881,18 @@ function start(data) {
   // свайп по книге; на телефоне ещё и касание края страницы — как в читалках
   let sx = null, sy = null;
   const view = document.getElementById('view');
+  // на телефоне боковой жест браузер забирает себе (pointercancel вместо pointerup) — касания разбираем сами
+  let touched = 0;
+  view.addEventListener('touchstart', (e) => { const t = e.touches[0]; if (t) { sx = t.clientX; sy = t.clientY; } }, { passive: true });
+  view.addEventListener('touchend', (e) => {
+    const t = e.changedTouches[0];
+    if (sx === null || !t) return;
+    const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { sx = null; touched = Date.now(); show(cur + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); }
+  }, { passive: true });
   view.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
   view.addEventListener('pointerup', (e) => {
-    if (sx === null) return;
+    if (sx === null || Date.now() - touched < 600) return;
     const dx = e.clientX - sx, dy = e.clientY - sy;
     sx = null;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { show(cur + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); return; }
