@@ -715,6 +715,15 @@ function freeWord(list) {
   const parts = [pro ? 'пролог' : '', ch.length === 1 ? `глава ${ch[0]}` : ch.length ? `главы ${ch[0]}–${ch[ch.length - 1]}` : ''].filter(Boolean);
   return { text: parts.join(' и '), many: parts.length > 1 || ch.length > 1 };
 }
+/** Краткая летопись (даром) кончается приглашением в полную: её оглавление и кнопка в колизей. */
+function teaserSpread() {
+  const toc = D.fullToc || [];
+  const buy = /^https:\/\/t\.me\//.test(D.buy) ? `<a class="buy-btn" href="${esc(D.buy)}" target="_blank" rel="noopener">Открыть полную летопись в колизее</a>` : '';
+  const left = `<div class="sealpg">${seal(H.name.charAt(0))}<h3>Здесь кончается краткая летопись</h3>
+    <p>Это главные вехи ${W.gen} — коротко. Полная летопись рассказывает ту же жизнь подробно: главы о прошлом, чтобы узнать себя, то, что идёт сейчас, и годы впереди — каждая с полями летописца и правилом «если — то».</p></div>`;
+  const right = `<div class="sealpg"><h3>Полная летопись</h3>${toc.length ? `<ul>${toc.map((c) => `<li><b>${esc(c.title)}</b> <i class="muted">— ${esc(c.kicker)}${c.years && c.years !== 'начало' ? `, ${esc(c.years)}` : ''}</i></li>`).join('')}</ul>` : ''}${buy}</div>`;
+  return { left, right };
+}
 function sealSpread() {
   const after = M.chapters.slice(M.free), fw = freeWord(M.chapters.slice(0, M.free));
   const left = `<div class="sealpg">${seal(H.name.charAt(0))}<h3>Здесь кончается вольная часть летописи</h3>
@@ -750,12 +759,13 @@ let D;
 const blk = (cls, html, id) => `<section class="blk ${cls}"${id ? ` id="${id}"` : ''}>${html}</section>`;
 function build() {
   let h = (M.lore ? blk('newpage', lorePage(), 'lore') + blk('notes', loreKey()) : '') + blk('full newpage', titlePage()) + blk('newpage', sheetPage()) + blk('newpage lstart', tocPage(), 'toc') + blk('newpage', mapPage());
-  const sealIt = () => { const x = sealSpread(); h += blk('full newpage lstart', x.left, 'seal') + blk('full newpage', x.right); };
+  const teaser = !SEALED && !!D.buy;
+  const sealIt = () => { const x = teaser ? teaserSpread() : sealSpread(); h += blk('full newpage lstart', x.left, 'seal') + blk('full newpage', x.right); };
   M.chapters.forEach((c, i) => {
-    if (i === M.free) sealIt();
+    if (i === M.free && !teaser) sealIt();
     h += blk('newpage', storyPage(c, i), 'ch' + i) + blk('notes', marginPage(c, i));
   });
-  if (M.free >= M.chapters.length) sealIt();
+  if (teaser) sealIt();
   const a = appendixA(), b = appendixB();
   h += blk('newpage lstart', a.left, 'app') + blk('newpage', a.right) + blk('newpage', b.left) + blk('newpage', b.right) + '<div class="end"></div>';
   document.getElementById('flow').innerHTML = h;
