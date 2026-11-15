@@ -187,30 +187,22 @@ html body .pop-t td { border-top-color: rgba(59, 42, 26, .18); }
 html body .pop-t td:last-child { color: var(--rubric); font-family: var(--body); font-weight: 700; }
 html body .pop-x { color: var(--ink); border-color: rgba(43, 29, 16, .35); }
 
-/* телефон: свиток — тот же поток одной лентой, без колонок */
+/* телефон (15.11.2026): тоже книга, а не лента — по одной странице на экран, тот же поток колонками шириной в экран;
+   листается свайпом, касанием края страницы и кнопками ‹ › снизу */
 @media (max-width: 900px) {
-  body { font-size: 18px; }
-  .desk { display: block; padding: 18px 10px 40px; }
-  .nav { display: none; }
-  .book, .book.closed { width: 100%; aspect-ratio: auto; padding: 0; background: none; box-shadow: none; }
-  .book::before, .book::after { content: ""; display: block; height: 22px; margin: 0 -6px; border-radius: 11px;
-    background: linear-gradient(#7a4f2c, #3a2214 55%, #1d110a); box-shadow: 0 6px 12px -4px #000; position: relative; z-index: 2; }
-  .cover-wrap, .book.closed .cover-wrap { position: static; display: block; }
-  .book.closed .view { visibility: visible; }
-  .view { position: static; overflow: visible; perspective: none; border-radius: 0; }
-  .strip { position: static; transform: none !important; }
-  .bg, .filler, .turner, .end { display: none !important; }
-  .flow { width: auto; height: auto; column-count: auto; padding: 26px 22px 40px; background: var(--paper);
-  background-image:
-    radial-gradient(120% 100% at 50% 50%, transparent 55%, rgba(120, 84, 40, .22) 100%),
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .12 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
-    box-shadow: inset 12px 0 18px -14px rgba(60, 38, 16, .5), inset -12px 0 18px -14px rgba(60, 38, 16, .5); }
-  .blk.newpage { margin-top: 26px; padding-top: 22px; border-top: 1px solid rgba(91, 70, 48, .25); }
-  .blk.newpage:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
-  .blk.full { min-height: 0; padding-bottom: 10px; }
-  .map svg { max-height: none; }
-  .cover-book { width: 100%; height: auto; min-height: 70vh; border-radius: 0; }
-  .open-btn { display: none; }
+  body { font-size: 17.5px; }
+  .desk { display: block; min-height: 0; height: calc(100vh - 62px - env(safe-area-inset-bottom, 0px)); height: calc(100dvh - 62px - env(safe-area-inset-bottom, 0px)); padding: 8px 8px 0; }
+  .book { width: 100%; height: 100%; aspect-ratio: auto; padding: 6px; border-radius: 9px; }
+  .view { inset: 6px; perspective: none; border-radius: 5px; }
+  .flow { width: var(--pw); column-count: 1; }
+  .bg.l, .bg.r, .bg.one { border-radius: 5px; box-shadow: inset 0 0 28px -14px rgba(60, 38, 16, .55); }
+  .turner, .filler { display: none !important; }
+  .strip { transition: transform .4s cubic-bezier(.2, .8, .2, 1); }
+  .cover-book { width: 100%; padding: 28px 20px; border-radius: 6px; }
+  .cover-book h1 { font-size: clamp(30px, 9vw, 44px); }
+  .cover-book svg.emb { width: min(200px, 56%); }
+  .nav { padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)); gap: 8px; }
+  .nav .where { min-width: 92px; font-size: 13.5px; }
   .st { grid-template-columns: 150px minmax(0, 1fr) 28px; }
   .facts b { font-size: 17px; }
   .sheet dl div { grid-template-columns: minmax(0, 1fr); gap: 0; }
@@ -218,6 +210,7 @@ html body .pop-x { color: var(--ink); border-color: rgba(43, 29, 16, .35); }
   .toc .y { grid-column: 1; }
   .story p { text-align: left; hyphens: manual; }
 }
+@media (max-width: 900px) and (prefers-reduced-motion: reduce) { .strip { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .turner { display: none; } }
 </style>
 
@@ -761,7 +754,9 @@ function build() {
   document.getElementById('cover').innerHTML = `<div class="cover-book"><div><div class="ov">Книга ${W.gen}</div><h1>${esc(M.title)}</h1><div class="sub">${esc(M.subtitle)}</div>${wheel(H)}
     <div class="ov" style="letter-spacing:.2em">${esc(H.className)} · ${esc(H.path)}</div><button type="button" class="open-btn" data-open>Открыть книгу</button></div></div>`;
 }
-const scrollMode = () => matchMedia('(max-width: 900px)').matches;
+/** Телефон: по одной странице на экран (на большом экране — разворот из двух). */
+const onePage = () => matchMedia('(max-width: 900px)').matches;
+const per = () => (onePage() ? 1 : 2);
 const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Номер страницы (колонки), с которой начинается блок. */
 function colOf(el) {
@@ -772,47 +767,46 @@ function colOf(el) {
 function layout() {
   const flow = document.getElementById('flow');
   flow.querySelectorAll('.filler').forEach((f) => f.remove());
-  if (scrollMode()) { pages = 0; document.getElementById('bgs').innerHTML = ''; return; }
   const r = document.getElementById('view').getBoundingClientRect();
-  pw = r.width / 2;
+  pw = r.width / per();
   const ph = r.height, px = Math.round(Math.max(24, Math.min(46, pw * 0.08))), py = 28, pb = 46;
   const v = document.getElementById('book').style;
   v.setProperty('--pw', pw + 'px'); v.setProperty('--ph', ph + 'px'); v.setProperty('--px', px + 'px');
   v.setProperty('--py', py + 'px'); v.setProperty('--pb', pb + 'px'); v.setProperty('--ch', (ph - py - pb) + 'px');
-  for (const el of flow.querySelectorAll('.lstart')) if (colOf(el) % 2) el.insertAdjacentHTML('beforebegin', '<div class="filler" aria-hidden="true">❦</div>');
+  // глава — с левой страницы разворота; на телефоне страница одна, пустые страницы-орнаменты не нужны
+  if (!onePage()) for (const el of flow.querySelectorAll('.lstart')) if (colOf(el) % 2) el.insertAdjacentHTML('beforebegin', '<div class="filler" aria-hidden="true">❦</div>');
   pages = colOf(flow.querySelector('.end'));
-  if (pages % 2) pages++;
+  if (!onePage() && pages % 2) pages++;
   document.getElementById('bgs').innerHTML = Array.from({ length: pages }, (_, i) =>
-    `<div class="bg ${i % 2 ? 'r' : 'l'}" style="left:${i * pw}px"><span class="folio">${i + 1}</span></div>`).join('');
+    `<div class="bg ${onePage() ? 'one' : i % 2 ? 'r' : 'l'}" style="left:${i * pw}px"><span class="folio">${i + 1}</span></div>`).join('');
 }
 function show(k, dir) {
-  const last = Math.max(0, pages / 2 - 1);
+  const last = Math.max(0, Math.ceil(pages / per()) - 1);
   k = Math.max(-1, Math.min(last, k));
   const was = cur;
   cur = k;
   document.getElementById('book').classList.toggle('closed', k < 0);
-  if (dir && k >= 0 && was >= 0 && k !== was && !reduced()) {
+  if (dir && k >= 0 && was >= 0 && k !== was && !reduced() && !onePage()) {
     const t = document.createElement('div');
     t.className = 'turner ' + (dir > 0 ? 'fwd' : 'back');
     document.getElementById('view').appendChild(t);
     setTimeout(() => t.remove(), 650);
   }
-  document.getElementById('strip').style.transform = `translateX(${-2 * Math.max(0, k) * pw}px)`;
+  document.getElementById('strip').style.transform = `translateX(${-per() * Math.max(0, k) * pw}px)`;
   document.getElementById('prev').disabled = k < 0;
   document.getElementById('next').disabled = k >= last;
-  document.getElementById('where').textContent = k < 0 ? 'обложка' : `стр. ${2 * k + 1}–${2 * k + 2} из ${pages}`;
+  document.getElementById('where').textContent = k < 0 ? 'обложка' : onePage() ? `стр. ${k + 1} из ${pages}` : `стр. ${2 * k + 1}–${2 * k + 2} из ${pages}`;
   try {
     const gist = (location.hash.slice(1).match(/^[0-9a-f]{20,}/i) || [''])[0];
     const tail = k < 0 ? '' : String(k);
     history.replaceState(null, '', location.pathname + (gist ? '#' + gist + (tail ? '-' + tail : '') : tail ? '#' + tail : ''));
   } catch (e) { /* файл без истории */ }
 }
-/** Перейти к месту в книге: разворот, где оно начинается (на телефоне — прокрутка). */
+/** Перейти к месту в книге: разворот (на телефоне — страница), где оно начинается. */
 function goTo(id) {
   const el = document.getElementById(id);
   if (!el) return;
-  if (scrollMode()) { el.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' }); return; }
-  const k = Math.floor(colOf(el) / 2);
+  const k = Math.floor(colOf(el) / per());
   show(k, k >= cur ? 1 : -1);
 }
 function statPop(g) {
@@ -847,15 +841,23 @@ function start(data) {
   document.getElementById('next').addEventListener('click', () => show(cur + 1, 1));
   document.getElementById('toToc').addEventListener('click', () => (cur < 0 ? (show(0, 1), goTo('toc')) : goTo('toc')));
   document.addEventListener('keydown', (e) => {
-    if (scrollMode() || e.target.closest('input, textarea')) return;
+    if (e.target.closest('input, textarea')) return;
     if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); show(cur + 1, 1); }
     if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); show(cur - 1, -1); }
   });
-  // свайп по книге (планшет)
-  let sx = null;
+  // свайп по книге; на телефоне ещё и касание края страницы — как в читалках
+  let sx = null, sy = null;
   const view = document.getElementById('view');
-  view.addEventListener('pointerdown', (e) => { sx = e.clientX; });
-  view.addEventListener('pointerup', (e) => { if (sx !== null && !scrollMode() && Math.abs(e.clientX - sx) > 60) show(cur + (e.clientX < sx ? 1 : -1), e.clientX < sx ? 1 : -1); sx = null; });
+  view.addEventListener('pointerdown', (e) => { sx = e.clientX; sy = e.clientY; });
+  view.addEventListener('pointerup', (e) => {
+    if (sx === null) return;
+    const dx = e.clientX - sx, dy = e.clientY - sy;
+    sx = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) { show(cur + (dx < 0 ? 1 : -1), dx < 0 ? 1 : -1); return; }
+    if (!onePage() || Math.abs(dx) > 10 || Math.abs(dy) > 10 || e.target.closest('button, a, [data-stat], [data-target], [data-copy], input, textarea')) return;
+    const r = view.getBoundingClientRect(), x = (e.clientX - r.left) / r.width;
+    if (x > .72) show(cur + 1, 1); else if (x < .28) show(cur - 1, -1);
+  });
   let rt = 0;
   const relayout = () => { const k = cur; layout(); show(k, 0); };
   addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(relayout, 150); });
