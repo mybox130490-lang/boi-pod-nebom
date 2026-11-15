@@ -163,6 +163,7 @@ html body small.pl { color: var(--ink-2); font: italic 500 14px var(--body); }
 .sealpg p { margin: 0 auto; max-width: 26em; }
 .sealpg ul { list-style: none; padding: 0; margin: 8px auto; text-align: left; max-width: 24em; }
 .sealpg li { border-bottom: 1px dotted var(--line-2); padding: 3px 0; }
+.buy-btn { display: inline-block; margin: 10px auto 0; padding: 9px 22px; border-radius: 999px; background: var(--rubric); color: #f6ecd4; text-decoration: none; font: 600 16px var(--body); letter-spacing: .04em; }
 .sealed-story { text-align: center; margin-top: 18px; }
 .sealed-story svg { width: 120px; margin: 0 auto; display: block; }
 .sealed-story p { font-style: italic; color: var(--ink-2); }
@@ -708,13 +709,20 @@ function countWord(list) {
   const w = ch % 10 === 1 && ch % 100 !== 11 ? 'глава' : [2, 3, 4].includes(ch % 10) && ![12, 13, 14].includes(ch % 100) ? 'главы' : 'глав';
   return `${ch} ${w}${ep ? ' и эпилог' : ''}`;
 }
+/** «пролог и главы I–III» — вольная часть по названиям. */
+function freeWord(list) {
+  const pro = list.some((c) => c.kicker === 'Пролог'), ch = list.filter((c) => c.kicker.startsWith('Глава')).map((c) => c.kicker.slice(6));
+  const parts = [pro ? 'пролог' : '', ch.length === 1 ? `глава ${ch[0]}` : ch.length ? `главы ${ch[0]}–${ch[ch.length - 1]}` : ''].filter(Boolean);
+  return { text: parts.join(' и '), many: parts.length > 1 || ch.length > 1 };
+}
 function sealSpread() {
-  const after = M.chapters.slice(M.free);
+  const after = M.chapters.slice(M.free), fw = freeWord(M.chapters.slice(0, M.free));
   const left = `<div class="sealpg">${seal(H.name.charAt(0))}<h3>Здесь кончается вольная часть летописи</h3>
-    <p>${esc(cap(M.chapters.slice(0, M.free).map((c) => c.kicker.charAt(0).toLowerCase() + c.kicker.slice(1)).join(' и ')))} открыты каждому. Дальше — ${countWord(after)} о том, что ждёт ${W.acc} в ближайшие годы.</p></div>`;
+    <p>${esc(cap(fw.text))} ${fw.many ? 'открыты' : 'открыт'} каждому. Дальше — ${countWord(after)} о том, что ждёт ${W.acc} сейчас и в ближайшие годы.</p></div>`;
+  const buy = D.buy && /^https:\/\/t\.me\//.test(D.buy) ? `<a class="buy-btn" href="${esc(D.buy)}" target="_blank" rel="noopener">Снять печать в колизее</a>` : '';
   const right = SEALED
     ? `<div class="sealpg"><h3>Что за печатью</h3><ul>${after.map((c) => `<li><b>${esc(c.title)}</b> <i class="muted">— ${esc(c.years)}</i></li>`).join('')}</ul>
-      <p>Полная книга открывается целиком: каждая глава с полями летописца и правилом «если — то».</p></div>`
+      <p>Полная книга открывается целиком: каждая глава с полями летописца и правилом «если — то».</p>${buy}</div>`
     : `<div class="sealpg"><h3>Печать сломана</h3><p>Это книга ${W.self} — она открыта до конца. Друзьям, которые получат только вольную часть, эта страница покажет, что ждёт за печатью.</p><div class="orn">✦ ✦ ✦</div></div>`;
   return { left, right };
 }
